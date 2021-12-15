@@ -59,6 +59,11 @@
   resolved "https://registry.yarnpkg.com/@types/node/-/node-14.14.27.tgz#c7127f8da0498993e13b1a42faf1303d3110d2f2"
   integrity sha512-Ecfmo4YDQPwuqTCl1yBxLV5ihKfRlkBmzUEDcfIRvDxOTGQEeikr317Ln7Gcv0tjA8dVgKI3rniqW2G1OyKDng==
 
+"@types/webfontloader@^1.6.33":
+  version "1.6.33"
+  resolved "https://registry.yarnpkg.com/@types/webfontloader/-/webfontloader-1.6.33.tgz#cdef66b53341193ce1b4d4ad771703689db77708"
+  integrity sha512-2oOYQp0UBo/+NFsxdlF9ZwS1rq1q/wGnLsZMN7X+/xArRZoLPQhOGecesaRYJ2uhHyJ53TgitDORu2IV47FhHw==
+
 ajv-keywords@^3.5.2:
   version "3.5.2"
   resolved "https://registry.yarnpkg.com/ajv-keywords/-/ajv-keywords-3.5.2.tgz#31f29da5ab6e00d1c2d329acf7b5929614d5014d"
@@ -405,6 +410,11 @@ vite@^2.0.0-beta.65:
     rollup "^2.38.5"
   optionalDependencies:
     fsevents "~2.3.1"
+
+webfontloader@^1.6.28:
+  version "1.6.28"
+  resolved "https://registry.yarnpkg.com/webfontloader/-/webfontloader-1.6.28.tgz#db786129253cb6e8eae54c2fb05f870af6675bae"
+  integrity sha1-23hhKSU8tujq5UwvsF+HCvZnW64=
 
 wrappy@1:
   version "1.0.2"
