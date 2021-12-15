@@ -43,9 +43,15 @@ export default class Demo extends Phaser.Scene {
     const letterFrequencies = this.cache.json.get('letterFrequencies');
     const trie = buildTrie(words);
 
-    // generate 16 random letters
+    const board = {
+      w: 8,
+      h: 8
+    }
+    const numberOfTiles = board.w * board.h;
+
+    // generate random letters
     const tiles: LetterTile[] = [];
-    for (let x = 0; x < 16; x++) {
+    for (let x = 0; x < numberOfTiles; x++) {
       tiles.push({
         index: x,
         value: this.generator.weightedPick(letterFrequencies),
@@ -61,21 +67,22 @@ export default class Demo extends Phaser.Scene {
      12 13 14 15
     */
     // for each tile, set the links
-    for (let x = 0; x < 16; x++) {
+    for (let x = 0; x < numberOfTiles; x++) {
 
       // generate all surrounding indexes
-      let indexes = [x - (1 + 4), x - (0 + 4), x - (-1 + 4),
-      x - (1 + 0), x - (0 + 0), x - (-1 + 0),
-      x - (1 + -4), x - (0 + -4), x - (-1 + -4)];
+      let indexes = [
+        x - (1 + board.w), x - (0 + board.w), x - (-1 + board.w),
+        x - (1 + 0), x - (0 + 0), x - (-1 + 0),
+        x - (1 + -board.w), x - (0 + -board.w), x - (-1 + -board.w)];
 
       // if it's blocked by being out of bounds or against a wall
       // then the tiles aren't linked
       tiles[x].links = indexes.filter((idx, i) => {
-        return !(idx == x || idx < 0 || idx > 15
-          || (x % 4 == 0 && i % 3 == 0) // left column
-          || ((x + 1) % 4 == 0 && (i + 1) % 3 == 0) // right column
-          || (x < 4 && i < 3) // top row
-          || (x > 11 && i > 5)); // bottom row
+        return !(idx == x || idx < 0 || idx > (numberOfTiles - 1)
+          || (x % board.w == 0 && i % 3 == 0) // left column
+          || ((x + 1) % board.w == 0 && (i + 1) % 3 == 0) // right column
+          || (x < (board.w - 1) && i < 3) // top row
+          || (x > (numberOfTiles - (board.w + 1)) && i > 5)); // bottom row
       }).map(i => tiles[i]); // convert to reference to another tile
     }
 
@@ -95,8 +102,8 @@ export default class Demo extends Phaser.Scene {
 
     // Draw the letters
     this.letterButtons = tiles.map(tile => {
-      const x = 50 + ((tile.index % 4) * 50);
-      const y = 50 + Math.floor(tile.index / 4) * 50;
+      const x = 50 + ((tile.index % board.w) * 50);
+      const y = 50 + Math.floor(tile.index / board.h) * 50;
       const letterButton = this.add.text(x, y, tile.value, font)
         .setOrigin(0, 0)
         .setInteractive({ useHandCursor: true })
