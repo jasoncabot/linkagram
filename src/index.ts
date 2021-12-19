@@ -1,9 +1,8 @@
-import Phaser from 'phaser';
-import config from './config';
-import GameScene from './scenes/Game';
+import './sass/mystyles.scss';
 
-new Phaser.Game(
-  Object.assign(config, {
-    scene: [GameScene]
-  })
-);
+import Linkagram from './scenes/Linkagram';
+
+document.addEventListener('DOMContentLoaded', () => {
+    // start running game
+    new Linkagram({}).run();
+});

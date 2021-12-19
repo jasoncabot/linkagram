@@ -1,0 +1,103 @@
+@charset "utf-8";
+@import "../node_modules/bulma/bulma.sass";
+
+html, body {
+    padding: 0;
+    margin: 0;
+}
+
+@media(max-width: $tablet) {
+    .reverse-columns {
+        flex-direction: column-reverse;
+        display: flex;
+    }
+    #game {
+        justify-content: center;
+        flex-grow: 2;
+    }
+}
+
+div.columns {
+    margin: 0;
+}
+
+.container {
+    display: flex;
+    flex: 1;
+    max-width: 100vw;
+    max-height: 100vh;
+    height: 100vh;
+}
+
+.wordlist-container {
+    overflow: scroll;
+}
+
+.letter {
+    display: table-cell;
+    max-width: 0;
+    max-height: 0;
+    height: 1px;
+}
+
+.letter div {
+    height: 100%;
+    display: flex;
+    flex: 1;
+    align-items: center;
+    justify-content: center;
+}
+
+.letter a {
+    font-size: xx-large;
+    border-radius: 50%;
+    color: $primary;
+    height: 2em;
+    width: 2em;
+    text-align: center;
+    vertical-align: center;
+    box-shadow: 0.375em 0.375em 0 0 $grey-lighter;
+    text-transform: uppercase;
+    border: 0.1875em solid $dark;
+    background-color: $white;
+    transition: all .1s;
+}
+
+.letter.selected a {
+    color: adjust-color($color: $primary, $lightness: -50%);
+    box-shadow: 0 0 0 0 $grey-lighter;
+    margin-left: 10px;
+    margin-top: 10px;
+    margin-right: -10px;
+    margin-bottom: -10px;
+}
+
+.letter.highlighted a {
+    user-select: none;
+    color: $dark;
+    background-color: adjust-color($color: $primary, $lightness: -0%, $alpha: -0);
+}
+
+.letter:hover {
+    cursor: pointer;
+}
+
+#game {
+    display: flex;
+    flex-flow: column;
+    overflow: hidden;
+}
+
+#board {
+    flex: 1;
+}
+
+#current-word {
+    height: 1em;
+    text-transform: uppercase;
+    text-align: center;
+}
+
+#total-found {
+    text-align: center;
+}

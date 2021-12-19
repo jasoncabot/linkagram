@@ -1,24 +1,27 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <title>Linkagram :: Find all the words in the grid :: By Jason Cabot</title>
-    <meta charset="utf-8" />
-    <style>
-      body {
-        margin: 0;
-        background-color: #FFE1A8;
-      }
-      .word_list {
-        background-color: #FFE1A8;
-        color: red;
-        width: 300px;
-        height: 100%;
-        overflow: scroll;
-      }
-    </style>
-    <script type="module" src="/src/index.ts"></script>
-  </head>
-  <body>
-    <div id="game"></div>
-  </body>
+
+<head>
+  <title>Linkagram :: Find all the words in the grid :: By Jason Cabot</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <script type="module" src="/src/index.ts"></script>
+</head>
+
+<body>
+
+  <div class="columns reverse-columns container">
+    <div class="column is-one-quarter wordlist-container">
+      <h1>Linkagram</h1>
+      <div id="wordlist"></div>
+    </div>
+    <div class="column" id="game">
+      <div id="current-word" class="is-size-1"></div>
+      <table id="board"></table>
+      <div id="total-found" class="is-size-3"></div>
+    </div>
+  </div>
+
+</body>
+
 </html>
