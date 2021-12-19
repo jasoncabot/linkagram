@@ -18,15 +18,18 @@
 
 <body>
 
-  <div class="columns reverse-columns main-container is-full">
+  <div class="columns reverse-columns main-container is-full m-0">
     <div class="column is-one-quarter wordlist-container">
       <h1>Linkagram</h1>
       <div id="wordlist"></div>
     </div>
-    <div class="column" id="game">
+    <div class="column is-flex is-flex-direction-column" id="game">
       <div id="current-word" class="is-size-3 is-uppercase has-text-centered"></div>
-      <table id="board"></table>
-      <div id="total-found" class="is-size-3"></div>
+      <div id="board" class="is-flex is-flex-grow-1	">
+        <table></table>
+        <svg id="arrow-overlay"></svg>
+      </div>
+      <div id="total-found" class="is-size-3 has-text-centered"></div>
     </div>
   </div>
 

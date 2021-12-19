@@ -119,7 +119,7 @@ export default class Linkagram {
         wordlist.innerHTML = this.wordListAsHTML();
 
         // Draw the letters
-        const board = document.getElementById("board");
+        const board = document.getElementById("board")?.children[0];
         this.letterButtons = tiles.map(tile => {
             const rowIndex = Math.floor(tile.index / this.board.w);
 
@@ -131,7 +131,7 @@ export default class Linkagram {
             }
 
             const letter = document.createElement("td");
-            letter.classList.add('letter', 'normal');
+            letter.classList.add('letter', 'normal', 'is-clickable', 'is-unselectable');
             letter.innerHTML = `<div><a>${tile.value}</a></div>`;
             letter.dataset.value = tile.value;
             letter.dataset.linkIndexes = tile.links.map(t => t.index).join(",");
@@ -166,6 +166,14 @@ export default class Linkagram {
 
             return letter;
         });
+
+        // TODO: Show word list on mobile
+        // const showWordList = (e: TouchEvent | MouseEvent) => {
+        //     e.preventDefault();
+        // };
+        // document.getElementById("total-found")?.addEventListener('touchstart', showWordList);
+        // document.getElementById("total-found")?.addEventListener('click', showWordList);
+    
 
         this.onWordListUpdated();
         this.onSelectionChanged();
@@ -215,14 +223,20 @@ export default class Linkagram {
 
         this.selectedIndexes.push(index);
 
-        // TODO: Draw an arrow between previous and next using SVG
-        // if (previous) {
-        //     // draw an arrow linking previous to next
-        //     const svg = document.createElement("svg");
-        //     svg.classList.add("arrow");
-        //     svg.innerHTML = `<line stroke-width="1px" stroke="#000000" x1="${0}" y1="${50}" x2="${500}" y2="${50}" />`;
-        //     document.getElementById('game')!.appendChild(svg);
-        // }
+        if (previous) {
+            // TODO: Draw an arrow between previous and next using SVG
+            // draw an arrow linking previous to next
+            // const svg = document.getElementById("arrow-overlay");
+            // let arrow = document.createElementNS('http://www.w3.org/2000/svg','line');
+            // arrow.classList.add('arrow');
+            // arrow.setAttribute('stroke', '#000000');
+            // arrow.setAttribute('stroke-width', '1px');
+            // arrow.setAttribute('x1', previous.getBoundingClientRect().x.toString());
+            // arrow.setAttribute('y1', previous.getBoundingClientRect().y.toString());
+            // arrow.setAttribute('x2', next.getBoundingClientRect().x.toString());
+            // arrow.setAttribute('y2', next.getBoundingClientRect().y.toString());
+            // svg?.appendChild(arrow);
+        }
 
         // highlight every letter touching this last one
         this.highlightedIndexes.clear();

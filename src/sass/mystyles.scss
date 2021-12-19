@@ -20,10 +20,6 @@ html, body {
     }
 }
 
-div.columns {
-    margin: 0;
-}
-
 .main-container {
     display: flex;
     flex: 1;
@@ -35,79 +31,61 @@ div.columns {
     min-height: -webkit-fill-available;
 }
 
-.container.columns {
-    margin: 0;
-}
-
 .wordlist-container {
     overflow: scroll;
 }
 
-.letter {
-    display: table-cell;
-    max-width: 0;
-    max-height: 0;
-    height: 1px;
+#board table {
+    width: 100%;
+}
+
+#arrow-overlay {
+    position: absolute;
+    pointer-events: none;
 }
 
 .letter div {
-    height: 100%;
     display: flex;
+    height: 100%;
+    width: 100%;
     flex: 1;
     align-items: center;
     justify-content: center;
 }
 
 .letter a {
-    font-size: xx-large;
-    border-radius: 50%;
-    color: $primary;
-    height: 2em;
-    width: 2em;
-    text-align: center;
-    vertical-align: center;
-    box-shadow: 0.375em 0.375em 0 0 $grey-lighter;
-    text-transform: uppercase;
-    border: 0.1875em solid $dark;
     background-color: $white;
+    border-radius: 50%;
+    border: 0.1875em solid $text;
+    box-shadow: 0.375em 0.375em 0 0 $grey-lighter;
+    color: $text;
+    font-size: xx-large;
+    height: 2em;
+    text-align: center;
+    text-transform: uppercase;
     transition: all .1s;
+    vertical-align: center;
+    width: 2em;
 }
 
 .letter.selected a {
-    color: $dark;
+    background-color: $white;
+    border: 0.187em solid adjust-color($color: $text, $lightness: -10%);
     box-shadow: 0 0 0 0 $grey-lighter;
-    margin-left: 10px;
-    margin-top: 10px;
-    margin-right: -10px;
+    color: adjust-color($color: $primary, $lightness: -0%);
     margin-bottom: -10px;
+    margin-left: 10px;
+    margin-right: -10px;
+    margin-top: 10px;
 }
 
 .letter.highlighted a {
-    user-select: none;
-    color: $dark;
+    color: $text;
     background-color: adjust-color($color: $primary, $lightness: -0%, $alpha: -0);
-}
-
-.letter:hover {
-    cursor: pointer;
-}
-
-#game {
-    display: flex;
-    flex-flow: column;
-    overflow: hidden;
-}
-
-#board {
-    flex: 1;
 }
 
 #current-word {
     min-height: 3rem;
-}
-
-#total-found {
-    text-align: center;
 }
 
 .menu-list {
