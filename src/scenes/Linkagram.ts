@@ -210,7 +210,19 @@ export default class Linkagram {
     }
 
     addToSelection = (index: number) => {
+        const previous: HTMLElement | undefined = this.selectedIndexes.length === 0 ? undefined : this.letterButtons[this.selectedIndexes[0]];
+        const next = this.letterButtons[index];
+
         this.selectedIndexes.push(index);
+
+        // TODO: Draw an arrow between previous and next using SVG
+        // if (previous) {
+        //     // draw an arrow linking previous to next
+        //     const svg = document.createElement("svg");
+        //     svg.classList.add("arrow");
+        //     svg.innerHTML = `<line stroke-width="1px" stroke="#000000" x1="${0}" y1="${50}" x2="${500}" y2="${50}" />`;
+        //     document.getElementById('game')!.appendChild(svg);
+        // }
 
         // highlight every letter touching this last one
         this.highlightedIndexes.clear();
