@@ -112,8 +112,8 @@ export default class Linkagram {
             // if it's blocked by being out of bounds or against a wall
             // then the tiles aren't linked
             tiles[x].links = indexes.filter((linkIndex, idx) => {
-                return !(linkIndex == x 
-                    || linkIndex < 0 
+                return !(linkIndex == x
+                    || linkIndex < 0
                     || linkIndex > (numberOfTiles - 1)
                     || (x % board.w == 0 && idx % 3 == 0) // left column
                     || ((x + 1) % board.w == 0 && (idx + 1) % 3 == 0) // right column
@@ -151,9 +151,12 @@ export default class Linkagram {
                 board?.appendChild(row);
             }
 
-            const letter = document.createElement("td");
-            letter.classList.add('letter', 'is-clickable', 'is-unselectable');
-            letter.innerHTML = `<div><a>${tile.value}</a></div>`;
+            const tableCell = document.createElement("td");
+            tableCell.classList.add('is-unselectable');
+            tableCell.innerHTML = `<div class="is-flex is-justify-content-center is-align-content-center"><a class="letter is-clickable">${tile.value}</a></div>`;
+            row?.appendChild(tableCell);
+
+            const letter = tableCell.children[0].children[0] as HTMLElement;
             letter.dataset.value = tile.value;
             letter.dataset.linkIndexes = tile.links.map(t => t.index).join(",");
             const handleInteraction = (e: TouchEvent | MouseEvent) => {
@@ -184,8 +187,6 @@ export default class Linkagram {
             letter.addEventListener('touchstart', handleInteraction);
             letter.addEventListener('click', handleInteraction);
 
-            row?.appendChild(letter);
-
             return letter;
         });
 
@@ -206,6 +207,7 @@ export default class Linkagram {
 
         this.onWordListUpdated();
         this.onSelectionChanged();
+        this.clearSelection();
     }
 
     submitWord = (word: string, buttons: HTMLElement[]) => {
@@ -255,7 +257,7 @@ export default class Linkagram {
     }
 
     addToSelection = (index: number) => {
-        const previous: HTMLElement | undefined = this.selectedIndexes.length === 0 ? undefined : this.letterButtons[this.selectedIndexes[0]];
+        const previous: HTMLElement | undefined = this.selectedIndexes.length === 0 ? undefined : this.letterButtons[this.selectedIndexes[this.selectedIndexes.length - 1]];
         const next = this.letterButtons[index];
 
         this.selectedIndexes.push(index);
@@ -263,16 +265,22 @@ export default class Linkagram {
         if (previous) {
             // TODO: Draw an arrow between previous and next using SVG
             // draw an arrow linking previous to next
-            // const svg = document.getElementById("arrow-overlay");
-            // let arrow = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-            // arrow.classList.add('arrow');
-            // arrow.setAttribute('stroke', '#000000');
-            // arrow.setAttribute('stroke-width', '1px');
-            // arrow.setAttribute('x1', previous.getBoundingClientRect().x.toString());
-            // arrow.setAttribute('y1', previous.getBoundingClientRect().y.toString());
-            // arrow.setAttribute('x2', next.getBoundingClientRect().x.toString());
-            // arrow.setAttribute('y2', next.getBoundingClientRect().y.toString());
-            // svg?.appendChild(arrow);
+            const boardRect = document.getElementById('board')!.getBoundingClientRect();
+            const svg = document.getElementById("arrow-overlay");
+            let arrow = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+            const x1 = (previous.getBoundingClientRect().x - 10) + (previous.getBoundingClientRect().width / 2) + 10;
+            const x2 = (next.getBoundingClientRect().x + (previous.getBoundingClientRect().width / 2)) + 10;
+            const y1 = (previous.getBoundingClientRect().y - 10) + (previous.getBoundingClientRect().height / 2) + 10;
+            const y2 = (next.getBoundingClientRect().y + (previous.getBoundingClientRect().height / 2)) + 10;
+
+            arrow.setAttribute('stroke', 'hsl(0, 0%, 21%)');
+            arrow.setAttribute('stroke-width', '4px');
+            arrow.setAttribute('marker-end', "url(#arrowhead)");
+            arrow.setAttribute('x1', ((x1 / svg!.clientWidth) * 100) + "%");
+            arrow.setAttribute('y1', ((y1 / svg!.clientHeight) * 100) + "%");
+            arrow.setAttribute('x2', ((x2 / svg!.clientWidth) * 100) + "%");
+            arrow.setAttribute('y2', ((y2 / svg!.clientHeight) * 100) + "%");
+            svg?.appendChild(arrow);
         }
 
         // highlight every letter touching this last one
@@ -284,6 +292,13 @@ export default class Linkagram {
     }
 
     clearSelection = () => {
+        const svg = document.getElementById("arrow-overlay");
+        svg!.innerHTML = `<defs>
+            <marker id="arrowhead" viewBox="0 0 4 4" refX="1" refY="2" markerUnits="strokeWidth" markerWidth="4"
+            markerHeight="4" orient="auto">
+            <path d="M 0 0 L 4 2 L 0 4 z" />
+            </marker>
+        </defs>`;
         this.selectedIndexes = [];
         this.highlightedIndexes.clear();
         document.getElementById("current-word")!.innerText = "";
