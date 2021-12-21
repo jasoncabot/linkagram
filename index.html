@@ -16,7 +16,7 @@
   <script type="module" src="/src/index.ts"></script>
 </head>
 
-<body>
+<body class="is-clipped">
 
   <div class="columns reverse-columns main-container is-full m-0">
     <div class="column is-one-quarter wordlist-container">
@@ -31,6 +31,15 @@
       </div>
       <div id="total-found" class="is-size-3 has-text-centered"></div>
     </div>
+  </div>
+  <div class="modal" id="wordlist-modal">
+    <div class="modal-background" id="wordlist-modal-background"></div>
+    <div class="modal-content">
+      <div class="container section">
+        <div class="box" id="wordlist-modal-content" />
+      </div>
+    </div>
+    <button id="wordlist-modal-close" class="modal-close is-large" aria-label="close"></button>
   </div>
 
 </body>

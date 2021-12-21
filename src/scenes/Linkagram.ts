@@ -17,9 +17,34 @@ interface WordList {
 }
 
 interface RandomDataGenerator {
-    seed: string
     weightedPick(letters: string[]): string
 }
+
+enum FlashState {
+    Valid = 'warning',
+    Invalid = 'danger',
+    AlreadyFound = 'info'
+}
+
+const buildMulberry32 = (seed: number) => {
+    return () => {
+        var t = seed += 0x6D2B79F5;
+        t = Math.imul(t ^ t >>> 15, t | 1);
+        t ^= t + Math.imul(t ^ t >>> 7, t | 61);
+        return ((t ^ t >>> 14) >>> 0) / 4294967296;
+    }
+}
+
+const hashCode = (s: string) => {
+    var hash = 0, i, chr;
+    if (s.length === 0) return hash;
+    for (i = 0; i < s.length; i++) {
+        chr = s.charCodeAt(i);
+        hash = ((hash << 5) - hash) + chr;
+        hash |= 0; // Convert to 32bit integer
+    }
+    return hash;
+};
 
 export default class Linkagram {
     generator: RandomDataGenerator;
@@ -45,19 +70,15 @@ export default class Linkagram {
             frequenciesPath: data.words || 'assets/letters.json'
         };
 
-        this.board = {
-            w: data.size?.width || 4,
-            h: data.size?.height || 4
-        };
-
-        let gameId = data.id || (Math.random() * 10000);
+        this.board = { w: data.size!.width, h: data.size!.height };
+        let gameId = data.id;
         // seed the random generator based on (id, words, letters, width, height) as a change in any will cause the available words to be different
         let gameKey = `${gameId},${this.wordList.dictionaryPath},${this.wordList.frequenciesPath},${this.board.w},${this.board.h}`;
 
+        const prng = buildMulberry32(hashCode(gameKey));
         this.generator = {
-            seed: gameKey,
             weightedPick: (letters) => {
-                return letters[Math.floor(Math.random() * letters.length)];
+                return letters[Math.floor(prng() * letters.length)];
             }
         }
     }
@@ -84,18 +105,20 @@ export default class Linkagram {
 
             // generate all surrounding indexes
             let indexes = [
-                x - (1 + board.w), x - (0 + board.w), x - (-1 + board.w),
-                x - (1 + 0), x - (0 + 0), x - (-1 + 0),
-                x - (1 + -board.w), x - (0 + -board.w), x - (-1 + -board.w)];
+                (x - board.w) - 1, x - board.w, (x - board.w) + 1,
+                x - 1, x, x + 1,
+                (x + board.w) - 1, (x + board.w), (x + board.w) + 1];
 
             // if it's blocked by being out of bounds or against a wall
             // then the tiles aren't linked
-            tiles[x].links = indexes.filter((idx, i) => {
-                return !(idx == x || idx < 0 || idx > (numberOfTiles - 1)
-                    || (x % board.w == 0 && i % 3 == 0) // left column
-                    || ((x + 1) % board.w == 0 && (i + 1) % 3 == 0) // right column
-                    || (x < (board.w - 1) && i < 3) // top row
-                    || (x > (numberOfTiles - (board.w + 1)) && i > 5)); // bottom row
+            tiles[x].links = indexes.filter((linkIndex, idx) => {
+                return !(linkIndex == x 
+                    || linkIndex < 0 
+                    || linkIndex > (numberOfTiles - 1)
+                    || (x % board.w == 0 && idx % 3 == 0) // left column
+                    || ((x + 1) % board.w == 0 && (idx + 1) % 3 == 0) // right column
+                    || (x < (board.w - 1) && idx < 3) // top row
+                    || (x > (numberOfTiles - (board.w + 1)) && idx > 5)); // bottom row
             }).map(i => tiles[i]); // convert to reference to another tile
         }
         return tiles;
@@ -115,8 +138,6 @@ export default class Linkagram {
             this.wordList.byLength[word.length] = arr;
         });
         Object.keys(this.wordList.byLength).forEach(k => this.wordList.byLength[parseInt(k, 10)].sort());
-        const wordlist = document.getElementById('wordlist')!;
-        wordlist.innerHTML = this.wordListAsHTML();
 
         // Draw the letters
         const board = document.getElementById("board")?.children[0];
@@ -131,7 +152,7 @@ export default class Linkagram {
             }
 
             const letter = document.createElement("td");
-            letter.classList.add('letter', 'normal', 'is-clickable', 'is-unselectable');
+            letter.classList.add('letter', 'is-clickable', 'is-unselectable');
             letter.innerHTML = `<div><a>${tile.value}</a></div>`;
             letter.dataset.value = tile.value;
             letter.dataset.linkIndexes = tile.links.map(t => t.index).join(",");
@@ -140,7 +161,8 @@ export default class Linkagram {
                 const lastIndex = this.selectedIndexes[this.selectedIndexes.length - 1];
                 if (tile.index == lastIndex) {
                     const word = this.selectedIndexes.map(i => tiles[i].value).join('');
-                    this.submitWord(word);
+                    const buttons = this.selectedIndexes.map(i => this.letterButtons[i]);
+                    this.submitWord(word, buttons);
                     this.clearSelection();
                 } else if (this.selectedIndexes.length == 0) {
                     this.addToSelection(tile.index);
@@ -167,25 +189,34 @@ export default class Linkagram {
             return letter;
         });
 
-        // TODO: Show word list on mobile
-        // const showWordList = (e: TouchEvent | MouseEvent) => {
-        //     e.preventDefault();
-        // };
-        // document.getElementById("total-found")?.addEventListener('touchstart', showWordList);
-        // document.getElementById("total-found")?.addEventListener('click', showWordList);
-    
+        const showWordList = (e: TouchEvent | MouseEvent) => {
+            e.preventDefault();
+            document.getElementById('wordlist-modal')?.classList.add('is-active');
+        };
+        const hideWordList = (e: TouchEvent | MouseEvent) => {
+            e.preventDefault();
+            document.getElementById('wordlist-modal')?.classList.remove('is-active');
+        };
+        document.getElementById("total-found")?.addEventListener('touchstart', showWordList);
+        document.getElementById("total-found")?.addEventListener('click', showWordList);
+        document.getElementById("wordlist-modal-close")?.addEventListener('touchstart', hideWordList);
+        document.getElementById("wordlist-modal-close")?.addEventListener('click', hideWordList);
+        document.getElementById("wordlist-modal-background")?.addEventListener('touchstart', hideWordList);
+        document.getElementById("wordlist-modal-background")?.addEventListener('click', hideWordList);
 
         this.onWordListUpdated();
         this.onSelectionChanged();
     }
 
-    submitWord = (word: string) => {
-        if (this.wordList.words.has(word)) {
+    submitWord = (word: string, buttons: HTMLElement[]) => {
+        if (this.wordList.found.has(word)) {
+            this.flashButtons(buttons, FlashState.AlreadyFound);
+        } else if (this.wordList.words.has(word)) {
             this.wordList.found.add(word);
-            this.flashWord(word, true);
+            this.flashButtons(buttons, FlashState.Valid);
             this.onWordListUpdated();
         } else {
-            this.flashWord(word, false);
+            this.flashButtons(buttons, FlashState.Invalid);
         }
     }
 
@@ -205,7 +236,11 @@ export default class Linkagram {
         return `<aside class="menu">${sections.join('')}</aside>`;
     }
 
-    flashWord = (word: string, isValid: boolean) => {
+    flashButtons = (buttons: HTMLElement[], state: FlashState) => {
+        buttons.forEach(button => button.classList.add(state.valueOf()));
+        setTimeout(() => {
+            buttons.forEach(button => button.classList.remove(state.valueOf()));
+        }, 250);
     }
 
     onWordListUpdated = () => {
@@ -215,6 +250,8 @@ export default class Linkagram {
         totalFound!.innerText = `${found} / ${total}`;
         const wordlist = document.getElementById('wordlist')!;
         wordlist.innerHTML = this.wordListAsHTML();
+        const wordlistModal = document.getElementById('wordlist-modal-content')!;
+        wordlistModal.innerHTML = wordlist.innerHTML;
     }
 
     addToSelection = (index: number) => {
@@ -227,7 +264,7 @@ export default class Linkagram {
             // TODO: Draw an arrow between previous and next using SVG
             // draw an arrow linking previous to next
             // const svg = document.getElementById("arrow-overlay");
-            // let arrow = document.createElementNS('http://www.w3.org/2000/svg','line');
+            // let arrow = document.createElementNS('http://www.w3.org/2000/svg', 'line');
             // arrow.classList.add('arrow');
             // arrow.setAttribute('stroke', '#000000');
             // arrow.setAttribute('stroke-width', '1px');
@@ -254,18 +291,16 @@ export default class Linkagram {
 
     onSelectionChanged = () => {
         // go through each letter
-        // make sure it's in the right state based on the selectedIndexes, highlightedIndexes and hoverIndex
+        // make sure it's in the right state based on the selectedIndexes, highlightedIndexes
         this.letterButtons.forEach((button, idx) => {
             const selected: boolean = this.selectedIndexes.find(i => i === idx) !== undefined;
-            const highlighted: boolean = this.highlightedIndexes.has(idx);
+            const highlighted: boolean = this.highlightedIndexes.has(idx) || this.selectedIndexes.length === 0;
 
-            button.classList.remove('normal', 'selected', 'highlighted');
+            button.classList.remove('selected', 'highlighted');
             if (selected) {
                 button.classList.add('selected');
             } else if (highlighted) {
                 button.classList.add('highlighted');
-            } else {
-                button.classList.add('normal');
             }
         });
     }
