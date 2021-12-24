@@ -12,8 +12,6 @@ interface WordList {
     byLength: { [key: number]: string[] }
     words: Set<string>
     found: Set<string>
-    dictionaryPath: string
-    frequenciesPath: string
 }
 
 interface RandomDataGenerator {
@@ -21,9 +19,22 @@ interface RandomDataGenerator {
 }
 
 enum FlashState {
-    Valid = 'warning',
-    Invalid = 'danger',
-    AlreadyFound = 'info'
+    Valid = 'valid',
+    Invalid = 'invalid',
+    AlreadyFound = 'found'
+}
+
+interface LinkagramConfig {
+    id: number
+    size: { width: number, height: number }
+    dictionary: string
+    words: string
+}
+
+interface LinkagramState {
+    seed: number
+    words: Set<string>
+    save: (found: Set<string>) => (void)
 }
 
 const buildMulberry32 = (seed: number) => {
@@ -35,56 +46,43 @@ const buildMulberry32 = (seed: number) => {
     }
 }
 
-const hashCode = (s: string) => {
-    var hash = 0, i, chr;
-    if (s.length === 0) return hash;
-    for (i = 0; i < s.length; i++) {
-        chr = s.charCodeAt(i);
-        hash = ((hash << 5) - hash) + chr;
-        hash |= 0; // Convert to 32bit integer
-    }
-    return hash;
-};
-
 export default class Linkagram {
     generator: RandomDataGenerator;
     selectedIndexes: number[]
     hoverIndex: number | undefined;
     highlightedIndexes: Set<number>
+    tiles: LetterTile[]
     letterButtons: HTMLElement[];
     wordsFoundButton: any;
     wordList: WordList
-    board: { w: number; h: number; };
+    config: LinkagramConfig;
     wordListPopup: any | undefined;
+    state: LinkagramState;
 
-    constructor(data: any) {
+    constructor(data: LinkagramConfig, state: LinkagramState) {
         this.selectedIndexes = [];
         this.highlightedIndexes = new Set();
         this.letterButtons = [];
+        this.tiles = [];
         // TODO: make the dictionary / frequencies work again
         this.wordList = {
             byLength: [],
             words: new Set(),
-            found: new Set(),
-            dictionaryPath: data.dictionary || 'assets/words.json',
-            frequenciesPath: data.words || 'assets/letters.json'
+            found: new Set()
         };
+        this.state = state;
+        this.config = data;
 
-        this.board = { w: data.size!.width, h: data.size!.height };
-        let gameId = data.id;
-        // seed the random generator based on (id, words, letters, width, height) as a change in any will cause the available words to be different
-        let gameKey = `${gameId},${this.wordList.dictionaryPath},${this.wordList.frequenciesPath},${this.board.w},${this.board.h}`;
-
-        const prng = buildMulberry32(hashCode(gameKey));
+        const prng = buildMulberry32(state.seed);
         this.generator = {
             weightedPick: (letters) => {
-                return letters[Math.floor(prng() * letters.length)];
+                return letters[~~(Math.pow(prng(), 2) * letters.length)];
             }
         }
     }
 
-    buildTiles = (board: { w: number; h: number; }) => {
-        const numberOfTiles = board.w * board.h;
+    buildTiles = (board: { width: number; height: number; }) => {
+        const numberOfTiles = board.width * board.height;
         const tiles: LetterTile[] = [];
         for (let x = 0; x < numberOfTiles; x++) {
             tiles.push({
@@ -105,9 +103,9 @@ export default class Linkagram {
 
             // generate all surrounding indexes
             let indexes = [
-                (x - board.w) - 1, x - board.w, (x - board.w) + 1,
+                (x - board.width) - 1, x - board.width, (x - board.width) + 1,
                 x - 1, x, x + 1,
-                (x + board.w) - 1, (x + board.w), (x + board.w) + 1];
+                (x + board.width) - 1, (x + board.width), (x + board.width) + 1];
 
             // if it's blocked by being out of bounds or against a wall
             // then the tiles aren't linked
@@ -115,10 +113,10 @@ export default class Linkagram {
                 return !(linkIndex == x
                     || linkIndex < 0
                     || linkIndex > (numberOfTiles - 1)
-                    || (x % board.w == 0 && idx % 3 == 0) // left column
-                    || ((x + 1) % board.w == 0 && (idx + 1) % 3 == 0) // right column
-                    || (x < (board.w - 1) && idx < 3) // top row
-                    || (x > (numberOfTiles - (board.w + 1)) && idx > 5)); // bottom row
+                    || (x % board.width == 0 && idx % 3 == 0) // left column
+                    || ((x + 1) % board.width == 0 && (idx + 1) % 3 == 0) // right column
+                    || (x < (board.width - 1) && idx < 3) // top row
+                    || (x > (numberOfTiles - (board.width + 1)) && idx > 5)); // bottom row
             }).map(i => tiles[i]); // convert to reference to another tile
         }
         return tiles;
@@ -128,10 +126,10 @@ export default class Linkagram {
         const trie = buildTrie(words);
 
         // generate random letters
-        const tiles: LetterTile[] = this.buildTiles(this.board);
+        this.tiles = this.buildTiles(this.config.size);
 
         // Find all the words you should be able to get
-        this.wordList.words = this.findAllWords(tiles, trie);
+        this.wordList.words = this.findAllWords(this.tiles, trie);
         this.wordList.words.forEach(word => {
             let arr = this.wordList.byLength[word.length] || [];
             arr.push(word);
@@ -139,10 +137,59 @@ export default class Linkagram {
         });
         Object.keys(this.wordList.byLength).forEach(k => this.wordList.byLength[parseInt(k, 10)].sort());
 
+        // Add any words we have already found
+        this.state.words.forEach(word => this.wordList.found.add(word));
+
+        const updateTileSelection = (x: number, y: number, submit: boolean) => {
+            const letter = document.elementFromPoint(x, y) as HTMLElement;
+            if (letter && letter.dataset.index) {
+                const index = parseInt(letter.dataset.index, 10);
+                const tile = this.tiles[index];
+                this.onTileSelected(tile, submit);
+            }
+            const currentWord = document.getElementById("current-word")!
+            currentWord.style.left = (x - (currentWord.clientWidth / 2)).toString() + 'px';
+            currentWord.style.top = (y - 72).toString() + 'px';
+            return letter;
+        }
+
         // Draw the letters
-        const board = document.getElementById("board")?.children[0];
-        this.letterButtons = tiles.map(tile => {
-            const rowIndex = Math.floor(tile.index / this.board.w);
+        const board = document.getElementById("board")?.children[0] as HTMLElement;
+        let firstTile: HTMLElement | undefined;
+        let selectedNewLetter = true;
+        board.addEventListener('pointerdown', (e: PointerEvent) => {
+            e.preventDefault();
+            const letter = document.elementFromPoint(e.clientX, e.clientY) as HTMLElement;
+            const index = parseInt(letter.dataset.index!, 10);
+            // if this letter has already been picked previously 
+            selectedNewLetter = (this.selectedIndexes.find(i => i === index) === undefined);
+            firstTile = updateTileSelection(e.clientX, e.clientY, false);
+        });
+        board.addEventListener('pointermove', (e: PointerEvent) => {
+            e.preventDefault();
+            if (e.buttons) {
+                updateTileSelection(e.clientX, e.clientY, false);
+            }
+        });
+        board.addEventListener('pointerup', (e: PointerEvent) => {
+            e.preventDefault();
+            const letter = document.elementFromPoint(e.clientX, e.clientY) as HTMLElement;
+            // if we lifted up on a different letter, no letter or a previously selected letter
+            if (!letter || letter != firstTile || !selectedNewLetter) {
+                // submit it
+                this.submitWord();
+            } else {
+                // otherwise highlight it
+                const index = parseInt(letter.dataset.index!, 10);
+                const tile = this.tiles[index];
+
+                // if this index is also our last
+                this.onTileSelected(tile, !selectedNewLetter);
+            }
+        });
+
+        this.letterButtons = this.tiles.map(tile => {
+            const rowIndex = Math.floor(tile.index / this.config.size.width);
 
             let row = board?.children[rowIndex];
             if (!row) {
@@ -158,68 +205,66 @@ export default class Linkagram {
 
             const letter = tableCell.children[0].children[0] as HTMLElement;
             letter.dataset.value = tile.value;
-            letter.dataset.linkIndexes = tile.links.map(t => t.index).join(",");
-            const handleInteraction = (e: TouchEvent | MouseEvent) => {
-                e.preventDefault();
-                const lastIndex = this.selectedIndexes[this.selectedIndexes.length - 1];
-                if (tile.index == lastIndex) {
-                    const word = this.selectedIndexes.map(i => tiles[i].value).join('');
-                    const buttons = this.selectedIndexes.map(i => this.letterButtons[i]);
-                    this.submitWord(word, buttons);
-                    this.clearSelection();
-                } else if (this.selectedIndexes.length == 0) {
-                    this.addToSelection(tile.index);
-                } else {
-                    // if this index is touching the last one
-                    const touching = tile.links.find(link => link.index === lastIndex);
-                    const alreadySelected = this.selectedIndexes.find(idx => idx === tile.index) !== undefined;
-                    if (touching && !alreadySelected) {
-                        this.addToSelection(tile.index);
-                    } else if (!touching) {
-                        this.clearSelection();
-                        this.addToSelection(tile.index);
-                    } else {
-                        this.clearSelection();
-                    }
-                }
-                this.onSelectionChanged();
-            }
-            letter.addEventListener('touchstart', handleInteraction);
-            letter.addEventListener('click', handleInteraction);
-
+            letter.dataset.index = tile.index.toString();
             return letter;
         });
 
-        const showWordList = (e: TouchEvent | MouseEvent) => {
+        const showWordList = (e: PointerEvent) => {
             e.preventDefault();
             document.getElementById('wordlist-modal')?.classList.add('is-active');
         };
-        const hideWordList = (e: TouchEvent | MouseEvent) => {
+        const hideWordList = (e: PointerEvent) => {
             e.preventDefault();
             document.getElementById('wordlist-modal')?.classList.remove('is-active');
         };
-        document.getElementById("total-found")?.addEventListener('touchstart', showWordList);
-        document.getElementById("total-found")?.addEventListener('click', showWordList);
-        document.getElementById("wordlist-modal-close")?.addEventListener('touchstart', hideWordList);
-        document.getElementById("wordlist-modal-close")?.addEventListener('click', hideWordList);
-        document.getElementById("wordlist-modal-background")?.addEventListener('touchstart', hideWordList);
-        document.getElementById("wordlist-modal-background")?.addEventListener('click', hideWordList);
+        document.getElementById("total-found")?.addEventListener('pointerdown', showWordList);
+        document.getElementById("wordlist-modal-close")?.addEventListener('pointerdown', hideWordList);
+        document.getElementById("wordlist-modal-background")?.addEventListener('pointerdown', hideWordList);
 
         this.onWordListUpdated();
         this.onSelectionChanged();
         this.clearSelection();
     }
 
-    submitWord = (word: string, buttons: HTMLElement[]) => {
+    onTileSelected = (tile: LetterTile, submit: boolean) => {
+        const lastIndex = this.selectedIndexes[this.selectedIndexes.length - 1];
+        if (tile.index == lastIndex) {
+            if (submit) {
+                this.submitWord();
+            }
+        } else if (this.selectedIndexes.length == 0) {
+            this.addTileToSelection(tile);
+        } else {
+            // if this index is touching the last one
+            const touching = tile.links.find(link => link.index === lastIndex) !== undefined;
+            const alreadySelected = this.selectedIndexes.find(idx => idx === tile.index) !== undefined;
+            if (touching && !alreadySelected) {
+                this.addTileToSelection(tile);
+            } else if (!touching) {
+                this.clearSelection();
+                this.addTileToSelection(tile);
+            } else {
+                this.clearSelection();
+            }
+        }
+        this.onSelectionChanged();
+    }
+
+    submitWord = () => {
+        const word: string = this.selectedIndexes.map(i => this.tiles[i].value).join('');
+        const buttons: HTMLElement[] = this.selectedIndexes.map(i => this.letterButtons[i]);
+
         if (this.wordList.found.has(word)) {
             this.flashButtons(buttons, FlashState.AlreadyFound);
         } else if (this.wordList.words.has(word)) {
             this.wordList.found.add(word);
+            this.state.save(this.wordList.found);
             this.flashButtons(buttons, FlashState.Valid);
             this.onWordListUpdated();
         } else {
             this.flashButtons(buttons, FlashState.Invalid);
         }
+        this.clearSelection();
     }
 
     wordListAsHTML = () => {
@@ -256,52 +301,45 @@ export default class Linkagram {
         wordlistModal.innerHTML = wordlist.innerHTML;
     }
 
-    addToSelection = (index: number) => {
+    addTileToSelection = (tile: LetterTile) => {
         const previous: HTMLElement | undefined = this.selectedIndexes.length === 0 ? undefined : this.letterButtons[this.selectedIndexes[this.selectedIndexes.length - 1]];
-        const next = this.letterButtons[index];
+        const next = this.letterButtons[tile.index];
 
-        this.selectedIndexes.push(index);
+        this.selectedIndexes.push(tile.index);
 
         if (previous) {
-            // TODO: Draw an arrow between previous and next using SVG
             // draw an arrow linking previous to next
-            const boardRect = document.getElementById('board')!.getBoundingClientRect();
-            const svg = document.getElementById("arrow-overlay");
+            const svg = document.getElementById("connections")!;
             let arrow = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-            const x1 = (previous.getBoundingClientRect().x - 10) + (previous.getBoundingClientRect().width / 2) + 10;
-            const x2 = (next.getBoundingClientRect().x + (previous.getBoundingClientRect().width / 2)) + 10;
-            const y1 = (previous.getBoundingClientRect().y - 10) + (previous.getBoundingClientRect().height / 2) + 10;
-            const y2 = (next.getBoundingClientRect().y + (previous.getBoundingClientRect().height / 2)) + 10;
-
-            arrow.setAttribute('stroke', 'hsl(0, 0%, 21%)');
-            arrow.setAttribute('stroke-width', '4px');
-            arrow.setAttribute('marker-end', "url(#arrowhead)");
-            arrow.setAttribute('x1', ((x1 / svg!.clientWidth) * 100) + "%");
-            arrow.setAttribute('y1', ((y1 / svg!.clientHeight) * 100) + "%");
-            arrow.setAttribute('x2', ((x2 / svg!.clientWidth) * 100) + "%");
-            arrow.setAttribute('y2', ((y2 / svg!.clientHeight) * 100) + "%");
+            arrow.classList.add('connection');
+            const x1 = (previous.getBoundingClientRect().x) + (previous.getBoundingClientRect().width / 2);
+            const x2 = (next.getBoundingClientRect().x + (previous.getBoundingClientRect().width / 2));
+            const y1 = (previous.getBoundingClientRect().y) + (previous.getBoundingClientRect().height / 2);
+            const y2 = (next.getBoundingClientRect().y + (previous.getBoundingClientRect().height / 2));
+            arrow.setAttribute('stroke', 'hsl(171, 100%, 41%)');
+            arrow.setAttribute('stroke-width', '6px');
+            arrow.setAttribute('x1', ((x1 / svg.clientWidth) * 100) + "%");
+            arrow.setAttribute('y1', ((y1 / svg.clientHeight) * 100) + "%");
+            arrow.setAttribute('x2', ((x2 / svg.clientWidth) * 100) + "%");
+            arrow.setAttribute('y2', ((y2 / svg.clientHeight) * 100) + "%");
             svg?.appendChild(arrow);
         }
 
         // highlight every letter touching this last one
         this.highlightedIndexes.clear();
-        this.letterButtons[index].dataset.linkIndexes?.split(",").forEach((i: string) => this.highlightedIndexes.add(parseInt(i, 10)));
+        tile.links.forEach(t => this.highlightedIndexes.add(t.index));
 
-        const word = this.selectedIndexes.map(i => this.letterButtons[i].dataset.value).join('');
+        const word = this.selectedIndexes.map(i => this.tiles[i].value).join('');
         document.getElementById("current-word")!.innerText = word;
     }
 
     clearSelection = () => {
-        const svg = document.getElementById("arrow-overlay");
-        svg!.innerHTML = `<defs>
-            <marker id="arrowhead" viewBox="0 0 4 4" refX="1" refY="2" markerUnits="strokeWidth" markerWidth="4"
-            markerHeight="4" orient="auto">
-            <path d="M 0 0 L 4 2 L 0 4 z" />
-            </marker>
-        </defs>`;
+        const svg = document.getElementById("connections");
+        svg!.innerHTML = ``;
         this.selectedIndexes = [];
         this.highlightedIndexes.clear();
         document.getElementById("current-word")!.innerText = "";
+        this.onSelectionChanged();
     }
 
     onSelectionChanged = () => {
@@ -363,3 +401,5 @@ export default class Linkagram {
         return allWords;
     }
 }
+
+export type { LinkagramState, LinkagramConfig };

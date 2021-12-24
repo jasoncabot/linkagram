@@ -4,7 +4,7 @@
 <head>
   <title>Linkagram - Find All the words</title>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
   <meta property="og:title" content="Linkagram" />
   <meta property="og:site_name" content="Linkagram" />
   <meta property="og:url" content="https://linkagram.jasoncabot.me" />
@@ -18,25 +18,53 @@
 
 <body class="is-clipped">
 
+  <nav class="navbar" role="navigation" aria-label="main navigation">
+    <div class="navbar-brand">
+      <a class="navbar-item" href="https://linkagram.jasoncabot.me">
+        <h1>Linkagram</h1>
+      </a>
+
+      <a role="button" class="navbar-burger" aria-label="menu" aria-expanded="false" data-target="mainNav">
+        <span aria-hidden="true"></span>
+        <span aria-hidden="true"></span>
+        <span aria-hidden="true"></span>
+      </a>
+    </div>
+
+    <div id="mainNav" class="navbar-menu">
+      <div class="navbar-end">
+        <div class="navbar-item">
+          <div class="buttons">
+            <a class="button is-primary">
+              <strong>Sign up</strong>
+            </a>
+            <a class="button is-light" href="/login">
+              Log in
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </nav>
+
   <div class="columns reverse-columns main-container is-full m-0">
     <div class="column is-one-quarter wordlist-container">
-      <h1>Linkagram</h1>
       <div id="wordlist"></div>
     </div>
     <div class="column is-flex is-flex-direction-column" id="game">
-      <div id="current-word" class="is-size-3 is-uppercase has-text-centered"></div>
-      <div id="board" class="is-flex is-flex-grow-1	">
+      <div id="current-word" class="is-size-3 is-uppercase has-text-centered is-unselectable"></div>
+      <div id="board" class="is-flex is-flex-grow-2">
         <table></table>
       </div>
-      <svg id="arrow-overlay">
-      </svg>
-      <div id="total-found" class="is-size-3 has-text-centered"></div>
+      <svg id="connections"></svg>
+      <div id="total-found"
+        class="is-flex is-flex-grow-1 is-size-3 is-justify-content-center is-unselectable is-clickable"></div>
     </div>
   </div>
   <div class="modal" id="wordlist-modal">
     <div class="modal-background" id="wordlist-modal-background"></div>
-    <div class="modal-content">
-      <div class="container section">
+    <div class="container section">
+      <div class="modal-content">
         <div class="box" id="wordlist-modal-content" />
       </div>
     </div>
