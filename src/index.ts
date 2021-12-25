@@ -22,7 +22,7 @@ const parseConfig: () => LinkagramConfig = () => {
         shouldRedirect = true;
     }
     if (!parameters.get('dict')) {
-        parameters.set('dict', 'oxford-3000.json');
+        parameters.set('dict', 'google-10000.json');
         shouldRedirect = true;
     }
     if (shouldRedirect) window.location.search = parameters.toString();
