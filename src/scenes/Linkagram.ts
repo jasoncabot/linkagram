@@ -1,5 +1,3 @@
-import words from './../data/words.json';
-import letterFrequencies from './../data/letters.json';
 import { buildTrie, isPrefix, isWord, TrieNode } from '../trie';
 
 interface LetterTile {
@@ -28,7 +26,7 @@ interface LinkagramConfig {
     id: number
     size: { width: number, height: number }
     dictionary: string
-    words: string
+    frequencies: string
 }
 
 interface LinkagramState {
@@ -64,7 +62,6 @@ export default class Linkagram {
         this.highlightedIndexes = new Set();
         this.letterButtons = [];
         this.tiles = [];
-        // TODO: make the dictionary / frequencies work again
         this.wordList = {
             byLength: [],
             words: new Set(),
@@ -81,13 +78,13 @@ export default class Linkagram {
         }
     }
 
-    buildTiles = (board: { width: number; height: number; }) => {
+    buildTiles = (board: { width: number; height: number; }, frequencies: string[]) => {
         const numberOfTiles = board.width * board.height;
         const tiles: LetterTile[] = [];
         for (let x = 0; x < numberOfTiles; x++) {
             tiles.push({
                 index: x,
-                value: this.generator.weightedPick(letterFrequencies),
+                value: this.generator.weightedPick(frequencies),
                 links: []
             });
         }
@@ -122,11 +119,18 @@ export default class Linkagram {
         return tiles;
     }
 
-    run = () => {
+    run = async () => {
+
+        const [wordsResponse, frequenciesResponse] = await Promise.all([
+            fetch("/data/" + this.config.dictionary),
+            fetch("/data/" + this.config.frequencies)
+        ]);
+        const words = await wordsResponse.json();
+        const frequencies = await frequenciesResponse.json();
         const trie = buildTrie(words);
 
         // generate random letters
-        this.tiles = this.buildTiles(this.config.size);
+        this.tiles = this.buildTiles(this.config.size, frequencies);
 
         // Find all the words you should be able to get
         this.wordList.words = this.findAllWords(this.tiles, trie);
@@ -149,7 +153,7 @@ export default class Linkagram {
             }
             const currentWord = document.getElementById("current-word")!
             currentWord.style.left = (x - (currentWord.clientWidth / 2)).toString() + 'px';
-            currentWord.style.top = (y - 72).toString() + 'px';
+            currentWord.style.top = (y - 90).toString() + 'px';
             return letter;
         }
 
@@ -330,7 +334,9 @@ export default class Linkagram {
         tile.links.forEach(t => this.highlightedIndexes.add(t.index));
 
         const word = this.selectedIndexes.map(i => this.tiles[i].value).join('');
-        document.getElementById("current-word")!.innerText = word;
+        const currentWord = document.getElementById("current-word")!
+        currentWord.innerText = word;
+        currentWord.classList.add('has-word');
     }
 
     clearSelection = () => {
@@ -338,7 +344,9 @@ export default class Linkagram {
         svg!.innerHTML = ``;
         this.selectedIndexes = [];
         this.highlightedIndexes.clear();
-        document.getElementById("current-word")!.innerText = "";
+        const currentWord = document.getElementById("current-word")!
+        currentWord.innerText = '';
+        currentWord.classList.remove('has-word');
         this.onSelectionChanged();
     }
 

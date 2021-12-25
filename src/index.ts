@@ -21,6 +21,10 @@ const parseConfig: () => LinkagramConfig = () => {
         parameters.set('height', '4');
         shouldRedirect = true;
     }
+    if (!parameters.get('dict')) {
+        parameters.set('dict', 'oxford-3000.json');
+        shouldRedirect = true;
+    }
     if (shouldRedirect) window.location.search = parameters.toString();
 
     return {
@@ -29,14 +33,14 @@ const parseConfig: () => LinkagramConfig = () => {
             height: parseInt(parameters.get('height')!, 10)
         },
         id: parseInt(parameters.get('id')!, 10),
-        dictionary: 'words.json',
-        words: 'letters.json'
+        dictionary: parameters.get('dict'),
+        frequencies: 'letters.json'
     };
 }
 
 const loadState = (config: LinkagramConfig) => {
     // seed the random generator based on (id, words, letters, width, height) as a change in any will cause the available words to be different
-    const key = `${config.id},${config.dictionary},${config.words},${config.size.width},${config.size.height}`;
+    const key = `${config.id},${config.dictionary},${config.frequencies},${config.size.width},${config.size.height}`;
 
     // store our progress keyed by game id
     const wordsAlreadyFound: string[] = JSON.parse(localStorage.getItem(key) || "[]");
