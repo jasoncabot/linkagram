@@ -6,7 +6,8 @@ html, body {
     margin: 0;
     height: -webkit-fill-available;
     overflow: none;
-    touch-action: manipulation;
+    touch-action: pinch-zoom;
+
 }
 
 @media(max-width: $tablet) {
