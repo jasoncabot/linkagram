@@ -1,6 +1,6 @@
 import './sass/mystyles.scss';
 
-import Linkagram, { LinkagramConfig } from './scenes/Linkagram';
+import Linkagram, { LinkagramConfig, LinkagramState } from './scenes/Linkagram';
 
 const parseConfig: () => LinkagramConfig = () => {
     const parameters: URLSearchParams = new URLSearchParams(window.location.search);
@@ -22,7 +22,7 @@ const parseConfig: () => LinkagramConfig = () => {
         shouldRedirect = true;
     }
     if (!parameters.get('dict')) {
-        parameters.set('dict', 'google-10000.json');
+        parameters.set('dict', 'wiktionary.json');
         shouldRedirect = true;
     }
     if (shouldRedirect) window.location.search = parameters.toString();
@@ -33,17 +33,35 @@ const parseConfig: () => LinkagramConfig = () => {
             height: parseInt(parameters.get('height')!, 10)
         },
         id: parseInt(parameters.get('id')!, 10),
-        dictionary: parameters.get('dict'),
+        dictionary: parameters.get('dict')!,
         frequencies: 'letters.json'
     };
 }
 
-const loadState = (config: LinkagramConfig) => {
+const loadState: (config: LinkagramConfig) => (LinkagramState) = (config: LinkagramConfig) => {
     // seed the random generator based on (id, words, letters, width, height) as a change in any will cause the available words to be different
     const key = `${config.id},${config.dictionary},${config.frequencies},${config.size.width},${config.size.height}`;
 
+    const accountKey = (type: string) => { return type };
+    const gameKey = (type: string) => { return `${key}.${type}` };
+
     // store our progress keyed by game id
-    const wordsAlreadyFound: string[] = JSON.parse(localStorage.getItem(key) || "[]");
+    const wordsAlreadyFound: string[] = JSON.parse(localStorage.getItem(gameKey("words")) || "[]");
+
+    // Read and parse hints from storage
+    const hints: Map<string, Set<number>> = new Map();
+    const savedHints: any = JSON.parse(localStorage.getItem(gameKey("hints")) || "{}");
+    Object.keys(savedHints).forEach(key => {
+        const found: number[] = savedHints[key] || [];
+        hints.set(key, new Set(found));
+    });
+    const serialise = (hints: Map<string, Set<number>>) => {
+        const object: any = {};
+        hints.forEach((indexes, key) => {
+            object[key] = Array.from(indexes);
+        });
+        return JSON.stringify(object);
+    }
 
     const hashCode = (s: string) => {
         var hash = 0, i, chr;
@@ -59,9 +77,14 @@ const loadState = (config: LinkagramConfig) => {
     return {
         seed: hashCode(key),
         words: new Set(wordsAlreadyFound),
-        save: (found: Set<string>) => {
-            const toSave = Array.from(found);
-            localStorage.setItem(key, JSON.stringify(toSave));
+        hints: hints,
+        hintCount: parseInt(localStorage.getItem(accountKey("hints")) || "30", 10),
+        revealCount: parseInt(localStorage.getItem(accountKey("reveals")) || "10", 10),
+        save: (state: LinkagramState) => {
+            localStorage.setItem(gameKey("words"), JSON.stringify(Array.from(state.words)));
+            localStorage.setItem(gameKey("hints"), serialise(state.hints));
+            localStorage.setItem(accountKey("hints"), JSON.stringify(state.hintCount));
+            localStorage.setItem(accountKey("reveals"), JSON.stringify(state.revealCount));
         }
     }
 }
@@ -83,7 +106,10 @@ const setupHamburger = () => {
 document.addEventListener('DOMContentLoaded', () => {
     // start running game
     const config = parseConfig();
-    new Linkagram(config, loadState(config)).run();
+    const linkagram = new Linkagram(config, loadState(config));
+    linkagram.run();
+
+    (document as any).linkagram = linkagram;
 
     setupHamburger();
 });

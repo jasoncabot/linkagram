@@ -9,10 +9,10 @@ interface LetterTile {
 interface WordList {
     byLength: { [key: number]: string[] }
     words: Set<string>
-    found: Set<string>
 }
 
 interface RandomDataGenerator {
+    pick(numbers: number[]): number
     weightedPick(letters: string[]): string
 }
 
@@ -32,7 +32,10 @@ interface LinkagramConfig {
 interface LinkagramState {
     seed: number
     words: Set<string>
-    save: (found: Set<string>) => (void)
+    hints: Map<string, Set<number>>
+    hintCount: number
+    revealCount: number
+    save: (state: LinkagramState) => (void)
 }
 
 const buildMulberry32 = (seed: number) => {
@@ -64,14 +67,16 @@ export default class Linkagram {
         this.tiles = [];
         this.wordList = {
             byLength: [],
-            words: new Set(),
-            found: new Set()
+            words: new Set()
         };
         this.state = state;
         this.config = data;
 
         const prng = buildMulberry32(state.seed);
         this.generator = {
+            pick: (array) => {
+                return array[Math.floor(prng() * array.length)];
+            },
             weightedPick: (letters) => {
                 return letters[~~(Math.pow(prng(), 2) * letters.length)];
             }
@@ -140,9 +145,6 @@ export default class Linkagram {
             this.wordList.byLength[word.length] = arr;
         });
         Object.keys(this.wordList.byLength).forEach(k => this.wordList.byLength[parseInt(k, 10)].sort());
-
-        // Add any words we have already found
-        this.state.words.forEach(word => this.wordList.found.add(word));
 
         const updateTileSelection = (x: number, y: number, submit: boolean) => {
             const letter = document.elementFromPoint(x, y) as HTMLElement;
@@ -258,11 +260,12 @@ export default class Linkagram {
         const word: string = this.selectedIndexes.map(i => this.tiles[i].value).join('');
         const buttons: HTMLElement[] = this.selectedIndexes.map(i => this.letterButtons[i]);
 
-        if (this.wordList.found.has(word)) {
+        if (this.state.words.has(word)) {
             this.flashButtons(buttons, FlashState.AlreadyFound);
         } else if (this.wordList.words.has(word)) {
-            this.wordList.found.add(word);
-            this.state.save(this.wordList.found);
+            this.state.hints.delete(word);
+            this.state.words.add(word);
+            this.state.save(this.state);
             this.flashButtons(buttons, FlashState.Valid);
             this.onWordListUpdated();
         } else {
@@ -274,17 +277,48 @@ export default class Linkagram {
     wordListAsHTML = () => {
         const sections = Object.keys(this.wordList.byLength).sort().map((length: string) => {
             const words = this.wordList.byLength[parseInt(length)].map(word => {
-                if (this.wordList.found.has(word)) {
-                    return `<li><a>${word}</a></li>`;
+                if (this.state.words.has(word)) {
+                    return `<li><a onclick="document.linkagram.define('${word}')">${word}</a></li>`
                 } else {
-                    // when we have hints we can fill individual letters in
-                    const stillToGuess = "_ ".repeat(word.length).trim();
-                    return `<li><a>${stillToGuess}</a></li>`
+                    const revealedIndexes = this.state.hints.get(word) || new Set();
+                    const stillToGuess = Array(word.length)
+                        .fill("_")
+                        .map((placeholder, idx) => revealedIndexes.has(idx) ? word.charAt(idx) : placeholder)
+                        .join(" ");
+                    return `<li><a onclick="document.linkagram.hint('${word}')">${stillToGuess}</a></li>`
                 }
             }).join('');
             return `<p class="menu-label">${length} letters</p><ol class="menu-list">${words}</ol></p>`;
         });
         return `<aside class="menu">${sections.join('')}</aside>`;
+    }
+
+    hint = (word: string) => {
+        if (this.state.hintCount === 0) {
+            console.log('Unable to use any more hints')
+            return;
+        }
+
+        // use our hint
+        this.state.hintCount -= 1;
+
+        const set = this.state.hints.get(word) || new Set();
+        const potentials = Array(word.length).fill(0).map((_, idx) => idx).filter(i => !set.has(i));
+
+        // if this hint would reveal the word
+        if (potentials.length == 1) {
+            this.state.hints.delete(word);
+            this.state.words.add(word);
+        } else {
+            set.add(this.generator.pick(potentials));
+            this.state.hints.set(word, set);
+        }
+        this.state.save(this.state);
+        this.onWordListUpdated();
+}
+
+    define = (word: string) => {
+        console.log('Find definition of ' + word);
     }
 
     flashButtons = (buttons: HTMLElement[], state: FlashState) => {
@@ -295,7 +329,7 @@ export default class Linkagram {
     }
 
     onWordListUpdated = () => {
-        const found = this?.wordList.found.size;
+        const found = this?.state.words.size;
         const total = this?.wordList.words.size;
         const totalFound = document.getElementById("total-found");
         totalFound!.innerText = `${found} / ${total}`;

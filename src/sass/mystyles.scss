@@ -6,7 +6,7 @@ html, body {
     margin: 0;
     height: -webkit-fill-available;
     overflow: none;
-    touch-action: none;
+    touch-action: manipulation;
 }
 
 @media(max-width: $tablet) {
@@ -67,6 +67,7 @@ html, body {
     transition: background-color 0.1s linear;
     vertical-align: center;
     width: 2em;
+    touch-action: manipulation;
 }
 
 .letter.selected {
