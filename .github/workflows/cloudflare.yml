@@ -1,0 +1,30 @@
+name: Cloudflare Pages
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy_pages:
+    runs-on: ubuntu-latest
+    name: Pages
+    steps:
+      - uses: actions/checkout@v2
+      - name: Read Node version from .nvmrc
+        run: echo ::set-output name=NVMRC::$(cat .nvmrc)
+        id: nvm
+      - name: Setup Node
+        uses: actions/setup-node@v1
+        with:
+          node-version: '${{ steps.nvm.outputs.NVMRC }}'
+      - run: yarn
+      - run: yarn build
+      - name: Publish
+        uses: cloudflare/wrangler-action@2.0.0
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages publish --project-name=$SITE dist
+        env:
+          SITE: linkagram
