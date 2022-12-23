@@ -232,15 +232,15 @@ export default class Linkagram {
         this.clearSelection();
     }
 
-    onTileSelected = (tile: LetterTile, submit: boolean) => {
+    onTileSelected = (tile: LetterTile | undefined, submit: boolean) => {
         const lastIndex = this.selectedIndexes[this.selectedIndexes.length - 1];
-        if (tile.index == lastIndex) {
+        if (tile?.index == lastIndex) {
             if (submit) {
                 this.submitWord();
             }
-        } else if (this.selectedIndexes.length == 0) {
+        } else if (tile && this.selectedIndexes.length == 0) {
             this.addTileToSelection(tile);
-        } else {
+        } else if (tile) {
             // if this index is touching the last one
             const touching = tile.links.find(link => link.index === lastIndex) !== undefined;
             const alreadySelected = this.selectedIndexes.find(idx => idx === tile.index) !== undefined;
@@ -290,7 +290,14 @@ export default class Linkagram {
             }).join('');
             return `<p class="menu-label">${length} letters</p><ol class="menu-list">${words}</ol></p>`;
         });
-        return `<aside class="menu">${sections.join('')}</aside>`;
+        const hintsLeft = this.state.hintCount;
+        return `<aside class="menu"><div><a onclick="document.linkagram.getMoreHints()">${hintsLeft} ${hintsLeft === 1 ? "hint" : "hints"} remaining</a></div>${sections.join('')}</aside>`;
+    }
+
+    getMoreHints = () => {
+        this.state.hintCount += 12;
+        this.state.save(this.state);
+        this.onWordListUpdated();
     }
 
     hint = (word: string) => {
@@ -315,10 +322,26 @@ export default class Linkagram {
         }
         this.state.save(this.state);
         this.onWordListUpdated();
-}
+    }
 
-    define = (word: string) => {
-        console.log('Find definition of ' + word);
+    define = async (word: string) => {
+        try {
+            const result = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${word}`);
+            const entry = await result.json() as [{
+                word: string
+                meanings: [
+                    { definitions: [{ definition: string }] }
+                ]
+            }];
+
+            const definition = entry[0]?.meanings[0]?.definitions[0]?.definition;
+            if (definition) {
+                alert(word + "\n\n" + definition);
+            }
+
+        } catch (err) {
+            console.log('Unable to find definition of ' + word);
+        }
     }
 
     flashButtons = (buttons: HTMLElement[], state: FlashState) => {

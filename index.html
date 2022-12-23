@@ -23,13 +23,12 @@
       <div id="wordlist"></div>
     </div>
     <div class="column is-flex is-flex-direction-column mt-6" id="game">
-      <div id="current-word" class="is-size-3 is-uppercase has-text-centered is-unselectable"></div>
+      <div id="total-found" class="is-flex is-flex-grow-1 is-size-3 is-justify-content-center is-unselectable is-clickable"></div>
       <div id="board" class="is-flex is-flex-grow-2">
-        <table></table>
+        <table tabindex="0"></table>
       </div>
+      <div id="current-word" class="is-size-3 is-flex-grow-1 is-uppercase has-text-centered is-unselectable"></div>
       <svg id="connections"></svg>
-      <div id="total-found"
-        class="is-flex is-flex-grow-1 is-size-3 is-justify-content-center is-unselectable is-clickable"></div>
     </div>
   </div>
   <div class="modal p-6" id="wordlist-modal">
