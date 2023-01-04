@@ -14,7 +14,7 @@ interface WordList {
 
 interface RandomDataGenerator {
     pick(numbers: number[]): number
-    weightedPick(letters: string[]): string
+    weightedPick(letters: string[], count: number): string[]
 }
 
 enum FlashState {
@@ -78,8 +78,38 @@ export default class Linkagram {
             pick: (array) => {
                 return array[Math.floor(prng() * array.length)];
             },
-            weightedPick: (letters) => {
-                return letters[~~(Math.pow(prng(), 2) * letters.length)];
+            weightedPick: (letters, count) => {
+                const weightedArray: string[] = [];
+                letters.forEach((letter, i) => {
+                    let numberOfTimes = 0;
+                    if (i < 12) {
+                        numberOfTimes = 7;
+                    } else if (i < 20) {
+                        numberOfTimes = 3;
+                    } else if (i < 23) {
+                        numberOfTimes = 2;
+                    } else {
+                        numberOfTimes = 1;
+                    }
+                    for (let count = 0; count < numberOfTimes; count++) {
+                        weightedArray.push(letter);
+                    }
+                })
+
+                // Shuffle the weighted array 
+                let currentIndex = weightedArray.length;
+                let randomIndex = 0;
+                while (currentIndex != 0) {
+                  randomIndex = Math.floor(prng() * currentIndex);
+                  currentIndex--;
+              
+                  // And swap it with the current element.
+                  [weightedArray[currentIndex], weightedArray[randomIndex]] = [
+                    weightedArray[randomIndex], weightedArray[currentIndex]];
+                }
+              
+                // pick the first elements up to however many we want to take
+                return weightedArray.slice(0, count);
             }
         }
     }
@@ -87,10 +117,11 @@ export default class Linkagram {
     buildTiles = (board: { width: number; height: number; }, frequencies: string[]) => {
         const numberOfTiles = board.width * board.height;
         const tiles: LetterTile[] = [];
+        const values = this.generator.weightedPick(frequencies, numberOfTiles);
         for (let x = 0; x < numberOfTiles; x++) {
             tiles.push({
                 index: x,
-                value: this.generator.weightedPick(frequencies),
+                value: values[x],
                 links: []
             });
         }
