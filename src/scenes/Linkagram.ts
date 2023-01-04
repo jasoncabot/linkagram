@@ -1,4 +1,5 @@
 import { buildTrie, isPrefix, isWord, TrieNode } from '../trie';
+import { celebrate } from "../confetti";
 
 interface LetterTile {
     index: number,
@@ -215,15 +216,15 @@ export default class Linkagram {
             return letter;
         });
 
-        const showWordList = (e: PointerEvent) => {
+        const showWordList = (e: Event) => {
             e.preventDefault();
             document.getElementById('wordlist-modal')?.classList.add('is-active');
         };
-        const hideWordList = (e: PointerEvent) => {
+        const hideWordList = (e: Event) => {
             e.preventDefault();
             document.getElementById('wordlist-modal')?.classList.remove('is-active');
         };
-        document.getElementById("total-found")?.addEventListener('pointerdown', showWordList);
+        document.getElementById("total-found")?.addEventListener('click', showWordList);
         document.getElementById("wordlist-modal-close")?.addEventListener('pointerdown', hideWordList);
         document.getElementById("wordlist-modal-background")?.addEventListener('pointerdown', hideWordList);
 
@@ -360,6 +361,14 @@ export default class Linkagram {
         wordlist.innerHTML = this.wordListAsHTML();
         const wordlistModal = document.getElementById('wordlist-modal-content')!;
         wordlistModal.innerHTML = wordlist.innerHTML;
+
+        if (found === total) {
+            this.onGameEnded();
+        }
+    }
+
+    onGameEnded = () => {
+        celebrate();
     }
 
     addTileToSelection = (tile: LetterTile) => {
@@ -441,6 +450,7 @@ export default class Linkagram {
 
         let allWords = new Set<string>();
         while (toExplore.length > 0) {
+
             const node = toExplore.pop()!;
 
             if (isWord(trie, node.value)) {

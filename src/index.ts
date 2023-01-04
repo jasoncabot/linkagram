@@ -5,27 +5,21 @@ import Linkagram, { LinkagramConfig, LinkagramState } from './scenes/Linkagram';
 const parseConfig: () => LinkagramConfig = () => {
     const parameters: URLSearchParams = new URLSearchParams(window.location.search);
 
-    let shouldRedirect = false;
     if (!parameters.get('id')) {
         const today = new Date();
         // a unique puzzle every day ;)
         const id = [today.getFullYear(), today.getMonth() + 1, today.getDate()].join('');
         parameters.set('id', id);
-        shouldRedirect = true;
     }
     if (!parameters.get('width')) {
         parameters.set('width', '4');
-        shouldRedirect = true;
     }
     if (!parameters.get('height')) {
         parameters.set('height', '4');
-        shouldRedirect = true;
     }
     if (!parameters.get('dict')) {
-        parameters.set('dict', 'wiktionary.json');
-        shouldRedirect = true;
+        parameters.set('dict', 'small.json');
     }
-    if (shouldRedirect) window.location.search = parameters.toString();
 
     return {
         size: {
