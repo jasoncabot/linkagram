@@ -225,8 +225,8 @@ export default class Linkagram {
             document.getElementById('wordlist-modal')?.classList.remove('is-active');
         };
         document.getElementById("total-found")?.addEventListener('click', showWordList);
-        document.getElementById("wordlist-modal-close")?.addEventListener('pointerdown', hideWordList);
-        document.getElementById("wordlist-modal-background")?.addEventListener('pointerdown', hideWordList);
+        document.getElementById("wordlist-modal-close")?.addEventListener('click', hideWordList);
+        document.getElementById("wordlist-modal-background")?.addEventListener('click', hideWordList);
 
         this.onWordListUpdated();
         this.onSelectionChanged();
