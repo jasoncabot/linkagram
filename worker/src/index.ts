@@ -35,6 +35,8 @@ const letterPaths: Record<string, string> = {
 	"z": "M 1.2 29.136 L 21.84 29.136 L 21.84 30.096 L 0 30.096 L 0 29.136 L 19.776 0.96 L 1.392 0.96 L 1.392 0 L 20.928 0 L 20.928 0.96 L 1.2 29.136 Z",
 }
 
+let initialisedWasm = false;
+
 export default {
 	async fetch(
 		request: Request,
@@ -58,14 +60,21 @@ export default {
 			const rowNumber = Math.floor(idx / 4);
 			const columnNumber = idx % 4;
 			return `
-				<circle cx="${32 + (columnNumber * 64)}" cy="${36 + (rowNumber * 64)}" r="28" stroke="grey" fill="none" stroke-width="2" />
+				<circle cx="${32 + (columnNumber * 64)}" cy="${35 + (rowNumber * 64)}" r="28" stroke="grey" fill="none" stroke-width="2" />
 				<path transform="translate(${20 + (columnNumber * 64)},${20 + (rowNumber * 64)})" d="${letterPaths[tile]}"/>
 				`;
 		}).join("\n")}
 		</g>
 		</svg>`;
 
-		await initWasm(wasm);
+		if (!initialisedWasm) {
+			try {
+				await initWasm(wasm);
+				initialisedWasm = true;
+			} catch (error) {
+				console.error(error);
+			}
+		}
 
 		const resvgJS = new Resvg(svg, {
 			fitTo: { mode: "width", value: 400 },

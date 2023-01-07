@@ -14,7 +14,7 @@ export async function onRequest(context: {
   env: Env;
 }): Promise<Response> {
   const { request, next } = context;
-  const { pathname } = new URL(request.url);
+  const { pathname, origin } = new URL(request.url);
 
 
   // Serve up some dynamic text and data
@@ -23,12 +23,23 @@ export async function onRequest(context: {
     return context.env.IMAGE_GENERATOR.fetch(context.request, {
       method: 'POST',
       body: JSON.stringify(letters)
-});
+    });
   } else if (pathname === "/") {
-    const { words } = boardAndSolutionsForToday();
+    const { words, letters } = boardAndSolutionsForToday();
     const asset = await context.env.ASSETS.fetch(context.request.url)
     let response = new Response(asset.body, asset)
-    return new HTMLRewriter().on('meta', new MetaUpdater(words.size)).transform(response);
+    return new HTMLRewriter().on('meta', new MetaUpdater(words.size, letters, origin)).transform(response);
+  } else {
+    // if we are using images of the form: /assets/linkagramgame.png - we treat everything in 
+    // the path name as the dynamic set of letters to produce - it means we can cache it forever
+    const assetRouteMatch = pathname.match(/assets\/([a-z]+)\.png/);
+    if (assetRouteMatch?.length == 2) {
+      const letters = assetRouteMatch[1].split("");
+      return context.env.IMAGE_GENERATOR.fetch(context.request, {
+        method: 'POST',
+        body: JSON.stringify(letters)
+      });
+    }
   }
 
   return next();
@@ -36,12 +47,18 @@ export async function onRequest(context: {
 
 class MetaUpdater {
   count: number;
-  constructor(count: number) {
+  letters: string[];
+  origin: string;
+  constructor(count: number, letters: string[], origin: string) {
     this.count = count;
+    this.letters = letters;
+    this.origin = origin;
   }
   element(element: HTMLElement) {
     if (element.getAttribute('property') === 'og:description') {
       element.setAttribute('content', `${this.count} word${this.count === 1 ? "" : "s"} to find today. Play now to find them all.`);
+    } else if (element.getAttribute('property') === 'og:image') {
+      element.setAttribute('content', `${this.origin}/assets/${this.letters.join("")}.png`);
     }
   }
 }
