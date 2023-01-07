@@ -41,7 +41,7 @@ class MetaUpdater {
   }
   element(element: HTMLElement) {
     if (element.getAttribute('property') === 'og:description') {
-      element.setAttribute('content', `${this.count} word${this.count === 1 ? "" : "s"} to find today. Play now and try to find them all.`);
+      element.setAttribute('content', `${this.count} word${this.count === 1 ? "" : "s"} to find today. Play now to find them all.`);
     }
   }
 }
