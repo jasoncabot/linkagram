@@ -19,7 +19,7 @@ jobs:
         with:
           node-version: '${{ steps.nvm.outputs.NVMRC }}'
       - run: yarn
-      - run: yarn build
+        working-directory: worker
       - name: Publish Image Worker
         uses: cloudflare/wrangler-action@2.0.0
         with:
@@ -27,6 +27,8 @@ jobs:
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           workingDirectory: 'worker'
           command: publish
+      - run: yarn
+      - run: yarn build
       - name: Publish Pages
         uses: cloudflare/wrangler-action@2.0.0
         with:
