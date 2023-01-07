@@ -14,15 +14,30 @@
   <meta property="og:image:height" content="256" />
   <meta property="article:author" content="https://jasoncabot.me" />
   <script type="module" src="/src/index.ts"></script>
+  <script defer src="https://use.fontawesome.com/releases/v5.3.1/js/all.js"></script>
 </head>
 
 <body class="is-clipped">
+  <div class="has-text-right p-1">
+    <button id="stats-button" class="button is-small">
+      <span class="icon">
+        <i class="fas fa-chart-bar"></i>
+      </span>
+    </button>
+    <button id="how-to-play-button" class="button is-small">
+      <span class="icon">
+        <i class="fas fa-question"></i>
+      </span>
+    </button>
+  </div>
+
   <div class="columns reverse-columns main-container is-full m-0">
     <div class="column is-one-quarter wordlist-container">
       <div id="wordlist"></div>
     </div>
     <div class="column is-flex is-flex-direction-column mt-6" id="game">
-      <div id="total-found" class="is-flex is-flex-grow-1 is-size-3 is-justify-content-center is-unselectable is-clickable"></div>
+      <div id="total-found"
+        class="is-flex is-flex-grow-1 is-size-2 is-justify-content-center is-unselectable is-clickable"></div>
       <div id="board" class="is-flex is-flex-grow-2">
         <table tabindex="0"></table>
       </div>
@@ -38,11 +53,20 @@
     <button id="wordlist-modal-close" class="modal-close is-large" aria-label="close"></button>
   </div>
 
-  <button class="js-modal-trigger" data-target="modal-js-example">
-    Open JS example modal
-  </button>
-  <div class="modal-card p-0" id="how-to-play-modal">
+  <div class="modal p-6" id="how-to-play-modal">
+    <div class="modal-background" id="how-to-play-modal-background"></div>
+    <div class="modal-content box" id="how-to-play-modal-content">
+      How to play
+    </div>
+    <button id="how-to-play-modal-close" class="modal-close is-large" aria-label="close"></button>
+  </div>
 
+  <div class="modal p-6" id="stats-modal">
+    <div class="modal-background" id="stats-modal-background"></div>
+    <div class="modal-content box" id="stats-modal-content">
+      Stats
+    </div>
+    <button id="stats-modal-close" class="modal-close is-large" aria-label="close"></button>
   </div>
 
   <canvas id="celebration"></canvas>

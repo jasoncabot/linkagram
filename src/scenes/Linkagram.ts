@@ -100,14 +100,14 @@ export default class Linkagram {
                 let currentIndex = weightedArray.length;
                 let randomIndex = 0;
                 while (currentIndex != 0) {
-                  randomIndex = Math.floor(prng() * currentIndex);
-                  currentIndex--;
-              
-                  // And swap it with the current element.
-                  [weightedArray[currentIndex], weightedArray[randomIndex]] = [
-                    weightedArray[randomIndex], weightedArray[currentIndex]];
+                    randomIndex = Math.floor(prng() * currentIndex);
+                    currentIndex--;
+
+                    // And swap it with the current element.
+                    [weightedArray[currentIndex], weightedArray[randomIndex]] = [
+                        weightedArray[randomIndex], weightedArray[currentIndex]];
                 }
-              
+
                 // pick the first elements up to however many we want to take
                 return weightedArray.slice(0, count);
             }
@@ -252,17 +252,29 @@ export default class Linkagram {
             return letter;
         });
 
-        const showWordList = (e: Event) => {
-            e.preventDefault();
-            document.getElementById('wordlist-modal')?.classList.add('is-active');
-        };
-        const hideWordList = (e: Event) => {
-            e.preventDefault();
-            document.getElementById('wordlist-modal')?.classList.remove('is-active');
-        };
-        document.getElementById("total-found")?.addEventListener('click', showWordList);
-        document.getElementById("wordlist-modal-close")?.addEventListener('click', hideWordList);
-        document.getElementById("wordlist-modal-background")?.addEventListener('click', hideWordList);
+        const showModal = (id: string) => {
+            return (e: Event) => {
+                e.preventDefault();
+                document.getElementById(id)?.classList.add('is-active');
+            };
+        }
+        const hideModal = (id: string) => {
+            return (e: Event) => {
+                e.preventDefault();
+                document.getElementById(id)?.classList.remove('is-active');
+            };
+        }
+        document.getElementById("total-found")?.addEventListener('click', showModal('wordlist-modal'));
+        document.getElementById("wordlist-modal-close")?.addEventListener('click', hideModal('wordlist-modal'));
+        document.getElementById("wordlist-modal-background")?.addEventListener('click', hideModal('wordlist-modal'));
+
+        document.getElementById("how-to-play-button")?.addEventListener('click', showModal('how-to-play-modal'));
+        document.getElementById("how-to-play-modal-close")?.addEventListener('click', hideModal('how-to-play-modal'));
+        document.getElementById("how-to-play-modal-background")?.addEventListener('click', hideModal('how-to-play-modal'));
+
+        document.getElementById("stats-button")?.addEventListener('click', showModal('stats-modal'));
+        document.getElementById("stats-modal-close")?.addEventListener('click', hideModal('stats-modal'));
+        document.getElementById("stats-modal-background")?.addEventListener('click', hideModal('stats-modal'));
 
         this.onWordListUpdated();
         this.onSelectionChanged();
@@ -397,6 +409,8 @@ export default class Linkagram {
         wordlist.innerHTML = this.wordListAsHTML();
         const wordlistModal = document.getElementById('wordlist-modal-content')!;
         wordlistModal.innerHTML = wordlist.innerHTML;
+
+        document.title = `Linkagram - ${found} / ${total} word${total === 1 ? "" : "s"}`;
 
         if (found === total) {
             this.onGameEnded();

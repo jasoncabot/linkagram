@@ -33,6 +33,7 @@
   "dependencies": {
     "@types/webfontloader": "^1.6.33",
     "bulma": "^0.9.3",
+    "font-awesome": "^4.7.0",
     "node-sass": "^7.0.0",
     "sass": "^1.45.0",
     "webfontloader": "^1.6.28"
