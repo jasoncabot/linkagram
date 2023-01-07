@@ -1,0 +1,7 @@
+name = "linkagram-img"
+main = "src/index.ts"
+compatibility_date = "2023-01-06"
+
+[[rules]]
+type = "CompiledWasm"
+globs = ["**/*.wasm"]

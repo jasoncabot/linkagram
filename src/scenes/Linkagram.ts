@@ -156,14 +156,7 @@ export default class Linkagram {
         return tiles;
     }
 
-    run = async () => {
-
-        const [wordsResponse, frequenciesResponse] = await Promise.all([
-            fetch("/data/" + this.config.dictionary),
-            fetch("/data/" + this.config.frequencies)
-        ]);
-        const words = await wordsResponse.json();
-        const frequencies = await frequenciesResponse.json();
+    initialise = (words: string[], frequencies: string[]) => {
         const trie = buildTrie(words);
 
         // generate random letters
@@ -177,6 +170,18 @@ export default class Linkagram {
             this.wordList.byLength[word.length] = arr;
         });
         Object.keys(this.wordList.byLength).forEach(k => this.wordList.byLength[parseInt(k, 10)].sort());
+    }
+
+    run = async () => {
+
+        const [wordsResponse, frequenciesResponse] = await Promise.all([
+            fetch("/data/" + this.config.dictionary),
+            fetch("/data/" + this.config.frequencies)
+        ]);
+
+        const words = await wordsResponse.json();
+        const frequencies = await frequenciesResponse.json();
+        this.initialise(words, frequencies);
 
         const updateTileSelection = (x: number, y: number, submit: boolean) => {
             const letter = document.elementFromPoint(x, y) as HTMLElement;
@@ -310,14 +315,14 @@ export default class Linkagram {
         const sections = Object.keys(this.wordList.byLength).sort().map((length: string) => {
             const words = this.wordList.byLength[parseInt(length)].map(word => {
                 if (this.state.words.has(word)) {
-                    return `<li><a onclick="document.linkagram.define('${word}')">${word}</a></li>`
+                    return `<li class="is-unselectable"><a onclick="document.linkagram.define('${word}')">${word}</a></li>`
                 } else {
                     const revealedIndexes = this.state.hints.get(word) || new Set();
                     const stillToGuess = Array(word.length)
                         .fill("_")
                         .map((placeholder, idx) => revealedIndexes.has(idx) ? word.charAt(idx) : placeholder)
                         .join(" ");
-                    return `<li><a onclick="document.linkagram.hint('${word}')">${stillToGuess}</a></li>`
+                    return `<li class="is-unselectable"><a onclick="document.linkagram.hint('${word}')">${stillToGuess}</a></li>`
                 }
             }).join('');
             return `<p class="menu-label">${length} letters</p><ol class="menu-list">${words}</ol></p>`;

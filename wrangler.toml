@@ -1,2 +1,6 @@
 name = "linkagram"
 compatibility_date = "2022-12-24"
+
+[[services]]
+binding = "IMAGE_GENERATOR"
+service = "linkagram-img"
