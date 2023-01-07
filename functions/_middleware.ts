@@ -39,9 +39,9 @@ class MetaUpdater {
   constructor(count: number) {
     this.count = count;
   }
-  element(element) {
+  element(element: HTMLElement) {
     if (element.getAttribute('property') === 'og:description') {
-      element.setAttribute('content', `${this.count} words to find today`);
+      element.setAttribute('content', `${this.count} word${this.count === 1 ? "" : "s"} to find today. Play now and try to find them all.`);
     }
   }
 }

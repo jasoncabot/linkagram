@@ -68,7 +68,7 @@ export default {
 		await initWasm(wasm);
 
 		const resvgJS = new Resvg(svg, {
-			fitTo: { mode: "width", value: 512 },
+			fitTo: { mode: "width", value: 400 },
 		})
 		const pngData = resvgJS.render();
 		const pngBuffer = pngData.asPng();
