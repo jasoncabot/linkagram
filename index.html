@@ -19,12 +19,12 @@
 
 <body class="is-clipped">
   <div class="has-text-right p-1">
-    <button id="stats-button" class="button is-small">
+    <button id="stats-button" class="button is-small  mr-2 mt-1">
       <span class="icon">
         <i class="fas fa-chart-bar"></i>
       </span>
     </button>
-    <button id="how-to-play-button" class="button is-small">
+    <button id="how-to-play-button" class="button is-small mr-2 mt-1">
       <span class="icon">
         <i class="fas fa-question"></i>
       </span>
@@ -53,18 +53,57 @@
     <button id="wordlist-modal-close" class="modal-close is-large" aria-label="close"></button>
   </div>
 
-  <div class="modal p-6" id="how-to-play-modal">
+  <div class="modal" id="how-to-play-modal">
     <div class="modal-background" id="how-to-play-modal-background"></div>
-    <div class="modal-content box" id="how-to-play-modal-content">
-      How to play
+    <div class="modal-content box content" id="how-to-play-modal-content">
+      <h1 class="title is-5">How to Play</h1>
+      <ul class="list">
+        <li>Swipe to make valid words</li>
+        <li>Letters must be linked together</li>
+        <li>Each letter can be used once</li>
+        <li>Find all the words</li>
+        <li>Use hints if you are stuck</li>
+      </ul>
+      <button id="how-to-play-modal-close-ok" class="button is-primary">
+        <span class="icon">
+          <i class="fas fa-check"></i>
+        </span>
+        <span>play</span>
+      </button>
     </div>
     <button id="how-to-play-modal-close" class="modal-close is-large" aria-label="close"></button>
   </div>
 
-  <div class="modal p-6" id="stats-modal">
+  <div class="modal" id="stats-modal">
     <div class="modal-background" id="stats-modal-background"></div>
     <div class="modal-content box" id="stats-modal-content">
-      Stats
+      <h1 class="title is-5">Your Personal Stats</h1>
+      <table class="table is-size-3 is-fullwidth">
+        <tbody>
+          <tr>
+            <td>Played</td>
+            <td id="stats-played">--</td>
+          </tr>
+          <tr>
+            <td>Completed</td>
+            <td id="stats-completed">--</td>
+          </tr>
+          <tr>
+            <td>Streak</td>
+            <td id="stats-streak">--</td>
+          </tr>
+          <tr>
+            <td>Max Streak</td>
+            <td id="stats-max-streak">--</td>
+          </tr>
+        </tbody>
+      </table>
+      <button id="share-button" class="button is-primary">
+        <span class="icon">
+          <i class="fas fa-share"></i>
+        </span>
+        <span>Share</span>
+      </button>
     </div>
     <button id="stats-modal-close" class="modal-close is-large" aria-label="close"></button>
   </div>

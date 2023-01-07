@@ -1,14 +1,13 @@
 @charset "utf-8";
 @import "../node_modules/bulma/bulma.sass";
 
-
 html, body {
     padding: 0;
     margin: 0;
     height: -webkit-fill-available;
     overflow: none;
     touch-action: pinch-zoom;
-
+    color: $text;
 }
 
 @media(max-width: $tablet) {
@@ -75,13 +74,11 @@ html, body {
 .letter.selected {
     background-color: $white;
     border: 0.1875em solid $primary;
-    color: $text;
 }
 
 .letter.highlighted {
     background-color: $white;
     border: 0.1875em solid $text;
-    color: $text;
 }
 
 @media (hover: hover) {
@@ -123,4 +120,60 @@ html, body {
     left: 0;
     position: absolute;
     display: none;
+}
+
+@media (prefers-color-scheme: dark) {
+    $primary: $primary-dark;
+    $dark-text: $grey-lighter;
+    $dark-background: $grey-dark;
+    html {
+        color: $dark-text;
+        background-color: $black-ter;
+    }
+    body {
+        color: $dark-text;
+    }
+    .letter {
+        color: $dark-text;
+        background-color: $dark-background;
+        border: 0.1875em solid $dark-text;
+    }
+    .letter.selected {
+        color: $dark-text;
+        background-color: $dark-background;
+        border: 0.1875em solid $primary;
+    }
+    .letter.highlighted {
+        color: $dark-text;
+        background-color: $dark-background;
+        border: 0.1875em solid $dark-text;
+    }
+    @media (hover: hover) {
+        .letter:hover {
+            background-color: adjust-color($color: $primary, $lightness: 5%);
+            color: adjust-color($color: $dark-text, $lightness: 5%);
+        }
+    }
+    .letter.valid { background-color: $primary; }
+    .letter.invalid { background-color: hsl(348, 53%, 52%); }
+    .letter.found { background-color: hsl(48, 100%, 36%); }
+    .connection {
+        stroke: $primary;
+    }
+    .menu a, .modal-content .menu a, .modal-content .menu-label {
+        color: $primary;
+    }
+    .menu-list a, .menu-label {
+        color: $dark-text;
+    }
+    @media(max-width: $tablet) {
+            #current-word {
+            background-color: $black;
+            opacity: 75%;
+        }
+    }
+    .modal {
+        background-color: $black-ter;
+    }
+
 }

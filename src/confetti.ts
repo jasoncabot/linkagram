@@ -119,7 +119,7 @@ const addConfetti = (area: DOMRect) => {
     }
 }
 
-export const celebrate = () => {
+export const celebrate = (onEnded: () => void) => {
     const confetti = document.getElementById('celebration') as HTMLCanvasElement;
     confetti.style.display = "block";
     confetti.width = confetti.clientWidth;
@@ -151,6 +151,7 @@ export const celebrate = () => {
         confettiElements.splice(0, confettiElements.length);
         window.cancelAnimationFrame(animationFrameHandle);
         confetti.style.display = "none";
+        onEnded();
     }
 
     addExplosion();

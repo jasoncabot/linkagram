@@ -78,7 +78,11 @@ const boardAndSolutionsForToday: () => { words: Set<string>, letters: string[] }
     words: setOfWords,
     hintCount: 0,
     hints: new Map<string, Set<number>>(),
-    revealCount: 0,
+    completedCount: 0,
+    lastCompletedKey: "null",
+    maxStreak: 0,
+    playedKeys: [],
+    streak: 0,
     save: () => { },
   });
   game.initialise(smallWords, letterDistribution);

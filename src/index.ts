@@ -57,18 +57,25 @@ const loadState: (config: LinkagramConfig) => (LinkagramState) = (config: Linkag
         });
         return JSON.stringify(object);
     }
-
     return {
         seed: hashCode(key),
         words: new Set(wordsAlreadyFound),
         hints: hints,
         hintCount: parseInt(localStorage.getItem(accountKey("hints")) || "30", 10),
-        revealCount: parseInt(localStorage.getItem(accountKey("reveals")) || "10", 10),
+        playedKeys: JSON.parse(localStorage.getItem(accountKey("playedKeys")) || "[]"),
+        completedCount: parseInt(localStorage.getItem(accountKey("completedCount")) || "0", 10),
+        streak: parseInt(localStorage.getItem(accountKey("streak")) || "0", 10),
+        maxStreak: parseInt(localStorage.getItem(accountKey("maxStreak")) || "0", 10),
+        lastCompletedKey: localStorage.getItem(accountKey("lastCompletedKey")),
         save: (state: LinkagramState) => {
             localStorage.setItem(gameKey("words"), JSON.stringify(Array.from(state.words)));
             localStorage.setItem(gameKey("hints"), serialise(state.hints));
             localStorage.setItem(accountKey("hints"), JSON.stringify(state.hintCount));
-            localStorage.setItem(accountKey("reveals"), JSON.stringify(state.revealCount));
+            localStorage.setItem(accountKey("playedKeys"), JSON.stringify(state.playedKeys));
+            localStorage.setItem(accountKey("completedCount"), JSON.stringify(state.completedCount));
+            localStorage.setItem(accountKey("streak"), JSON.stringify(state.streak));
+            localStorage.setItem(accountKey("maxStreak"), JSON.stringify(state.maxStreak));
+            localStorage.setItem(accountKey("lastCompletedKey"), JSON.stringify(state.lastCompletedKey));
         }
     }
 }

@@ -35,7 +35,11 @@ interface LinkagramState {
     words: Set<string>
     hints: Map<string, Set<number>>
     hintCount: number
-    revealCount: number
+    playedKeys: string[]
+    completedCount: number
+    streak: number
+    maxStreak: number
+    lastCompletedKey: string
     save: (state: LinkagramState) => (void)
 }
 
@@ -172,6 +176,13 @@ export default class Linkagram {
         Object.keys(this.wordList.byLength).forEach(k => this.wordList.byLength[parseInt(k, 10)].sort());
     }
 
+    showModal = (id: string) => {
+        return (e: Event) => {
+            e.preventDefault();
+            document.getElementById(id)?.classList.add('is-active');
+        };
+    }
+
     run = async () => {
 
         const [wordsResponse, frequenciesResponse] = await Promise.all([
@@ -252,33 +263,43 @@ export default class Linkagram {
             return letter;
         });
 
-        const showModal = (id: string) => {
-            return (e: Event) => {
-                e.preventDefault();
-                document.getElementById(id)?.classList.add('is-active');
-            };
-        }
         const hideModal = (id: string) => {
             return (e: Event) => {
                 e.preventDefault();
                 document.getElementById(id)?.classList.remove('is-active');
             };
         }
-        document.getElementById("total-found")?.addEventListener('click', showModal('wordlist-modal'));
+        document.getElementById("total-found")?.addEventListener('click', this.showModal('wordlist-modal'));
         document.getElementById("wordlist-modal-close")?.addEventListener('click', hideModal('wordlist-modal'));
         document.getElementById("wordlist-modal-background")?.addEventListener('click', hideModal('wordlist-modal'));
 
-        document.getElementById("how-to-play-button")?.addEventListener('click', showModal('how-to-play-modal'));
+        document.getElementById("how-to-play-button")?.addEventListener('click', this.showModal('how-to-play-modal'));
         document.getElementById("how-to-play-modal-close")?.addEventListener('click', hideModal('how-to-play-modal'));
+        document.getElementById("how-to-play-modal-close-ok")?.addEventListener('click', hideModal('how-to-play-modal'));
         document.getElementById("how-to-play-modal-background")?.addEventListener('click', hideModal('how-to-play-modal'));
 
-        document.getElementById("stats-button")?.addEventListener('click', showModal('stats-modal'));
+        document.getElementById("stats-button")?.addEventListener('click', this.showModal('stats-modal'));
         document.getElementById("stats-modal-close")?.addEventListener('click', hideModal('stats-modal'));
         document.getElementById("stats-modal-background")?.addEventListener('click', hideModal('stats-modal'));
+
+        document.getElementById("share-button")?.addEventListener('click', async () => {
+            try {
+                if (navigator.share) {
+                    await navigator.share({
+                        title: 'Linkagram',
+                        text: `Found ${this.state.words.size} / ${this.wordList.words.size}`,
+                        url: document.URL
+                    });
+                }
+            } catch (error) {
+                console.warn(error);
+            }
+        })
 
         this.onWordListUpdated();
         this.onSelectionChanged();
         this.clearSelection();
+        this.onGameStarted();
     }
 
     onTileSelected = (tile: LetterTile | undefined, submit: boolean) => {
@@ -417,8 +438,60 @@ export default class Linkagram {
         }
     }
 
+    onGameStarted = () => {
+        // yesterdays id
+        const today = new Date();
+        const yesterday = new Date();
+        yesterday.setDate(yesterday.getDate() - 1);
+        const yesterdaysKey = [yesterday.getFullYear(), yesterday.getMonth() + 1, yesterday.getDate()].join('');
+
+        // todays id
+        const key = [today.getFullYear(), today.getMonth() + 1, today.getDate()].join('');
+
+        // if the last played game was not this one
+        // we don't just look at the last element as you might play different
+        // games (by modifying the URL)
+        let showHowToPlay = false;
+        if (!this.state.playedKeys.includes(key)) {
+            // have we ever played before?
+            if (this.state.playedKeys.length == 0) {
+                showHowToPlay = true;
+            }
+
+            // increase how many games we have played
+            this.state.playedKeys.push(key);
+
+            // soz no streak for you
+            if (this.state.lastCompletedKey != yesterdaysKey) {
+                this.state.streak = 0;
+            }
+
+            this.state.save(this.state);
+        }
+        const setState = (name: string, value: number) => {
+            console.log('setting ' + name + ' to ' + value);
+            const e = document.getElementById(name);
+            if (!e) return;
+            e.innerText = value.toString();
+        }
+        setState('stats-played', this.state.playedKeys.length);
+        setState('stats-completed', this.state.completedCount);
+        setState('stats-streak', this.state.streak);
+        setState('stats-max-streak', this.state.maxStreak);
+
+        if (showHowToPlay) {
+            this.showModal('how-to-play-modal')(new Event("onGameEnded"))
+        }
+    }
+
     onGameEnded = () => {
-        celebrate();
+        this.state.completedCount += 1;
+        this.state.streak += 1;
+        if (this.state.streak > this.state.maxStreak) {
+            this.state.maxStreak = this.state.streak;
+        }
+        this.state.save(this.state);
+        celebrate(() => (this.showModal('stats-modal')(new Event("onGameEnded"))));
     }
 
     addTileToSelection = (tile: LetterTile) => {
