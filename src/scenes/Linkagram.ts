@@ -487,15 +487,8 @@ export default class Linkagram {
 
             this.state.save(this.state);
         }
-        const setState = (name: string, value: number) => {
-            const e = document.getElementById(name);
-            if (!e) return;
-            e.innerText = value.toString();
-        }
-        setState('stats-played', this.state.played.length);
-        setState('stats-completed', this.state.completed.length);
-        setState('stats-streak', this.state.streak);
-        setState('stats-max-streak', this.state.maxStreak);
+
+        this.onStatsUpdated();
 
         if (showHowToPlay) {
             this.showModal('how-to-play-modal')(new Event("onGameEnded"))
@@ -516,11 +509,24 @@ export default class Linkagram {
             }
             this.state.save(this.state);
         }
+        this.onStatsUpdated();
         celebrate(() => (this.showModal('stats-modal')(new Event("onGameEnded"))));
     }
 
     onWordRevealed = (word: string) => {
         this.state.words.add(word);
+    }
+
+    onStatsUpdated = () => {
+        const setState = (name: string, value: number) => {
+            const e = document.getElementById(name);
+            if (!e) return;
+            e.innerText = value.toString();
+        }
+        setState('stats-played', this.state.played.length);
+        setState('stats-completed', this.state.completed.length);
+        setState('stats-streak', this.state.streak);
+        setState('stats-max-streak', this.state.maxStreak);
     }
 
     addTileToSelection = (tile: LetterTile) => {
