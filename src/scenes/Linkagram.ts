@@ -520,7 +520,6 @@ export default class Linkagram {
     }
 
     onWordRevealed = (word: string) => {
-        // this.state.hints.delete(word);
         this.state.words.add(word);
     }
 
