@@ -35,11 +35,10 @@ interface LinkagramState {
     words: Set<string>
     hints: Map<string, Set<number>>
     hintCount: number
-    playedKeys: string[]
-    completedCount: number
+    played: string[]
+    completed: string[]
     streak: number
     maxStreak: number
-    lastCompletedKey: string
     save: (state: LinkagramState) => (void)
 }
 
@@ -439,43 +438,41 @@ export default class Linkagram {
     }
 
     onGameStarted = () => {
-        // yesterdays id
         const today = new Date();
-        const yesterday = new Date();
-        yesterday.setDate(yesterday.getDate() - 1);
-        const yesterdaysKey = [yesterday.getFullYear(), yesterday.getMonth() + 1, yesterday.getDate()].join('');
-
-        // todays id
         const key = [today.getFullYear(), today.getMonth() + 1, today.getDate()].join('');
 
         // if the last played game was not this one
         // we don't just look at the last element as you might play different
         // games (by modifying the URL)
         let showHowToPlay = false;
-        if (!this.state.playedKeys.includes(key)) {
+        if (!this.state.played.includes(key)) {
+            const yesterday = new Date();
+            yesterday.setDate(yesterday.getDate() - 1);
+            const yesterdaysKey = [yesterday.getFullYear(), yesterday.getMonth() + 1, yesterday.getDate()].join('');
+
             // have we ever played before?
-            if (this.state.playedKeys.length == 0) {
+            if (this.state.played.length == 0) {
                 showHowToPlay = true;
             }
 
             // increase how many games we have played
-            this.state.playedKeys.push(key);
+            this.state.played.push(key);
 
-            // soz no streak for you
-            if (this.state.lastCompletedKey != yesterdaysKey) {
+            // if we didn't complete yesterdays puzzle
+            if (!this.state.completed.includes(yesterdaysKey)) {
+                // soz no streak for you
                 this.state.streak = 0;
             }
 
             this.state.save(this.state);
         }
         const setState = (name: string, value: number) => {
-            console.log('setting ' + name + ' to ' + value);
             const e = document.getElementById(name);
             if (!e) return;
             e.innerText = value.toString();
         }
-        setState('stats-played', this.state.playedKeys.length);
-        setState('stats-completed', this.state.completedCount);
+        setState('stats-played', this.state.played.length);
+        setState('stats-completed', this.state.completed.length);
         setState('stats-streak', this.state.streak);
         setState('stats-max-streak', this.state.maxStreak);
 
@@ -485,12 +482,18 @@ export default class Linkagram {
     }
 
     onGameEnded = () => {
-        this.state.completedCount += 1;
-        this.state.streak += 1;
-        if (this.state.streak > this.state.maxStreak) {
-            this.state.maxStreak = this.state.streak;
+        const today = new Date();
+        const key = [today.getFullYear(), today.getMonth() + 1, today.getDate()].join('');
+
+        // if we haven't already recorded the fact we completed this game then do it now
+        if (!this.state.completed.includes(key)) {
+            this.state.completed.push(key);
+            this.state.streak += 1;
+            if (this.state.streak > this.state.maxStreak) {
+                this.state.maxStreak = this.state.streak;
+            }
+            this.state.save(this.state);
         }
-        this.state.save(this.state);
         celebrate(() => (this.showModal('stats-modal')(new Event("onGameEnded"))));
     }
 

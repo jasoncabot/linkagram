@@ -78,10 +78,9 @@ const boardAndSolutionsForToday: () => { words: Set<string>, letters: string[] }
     words: setOfWords,
     hintCount: 0,
     hints: new Map<string, Set<number>>(),
-    completedCount: 0,
-    lastCompletedKey: "null",
+    completed: [],
     maxStreak: 0,
-    playedKeys: [],
+    played: [],
     streak: 0,
     save: () => { },
   });
