@@ -34,6 +34,8 @@ interface LinkagramState {
     seed: number
     words: Set<string>
     hints: Map<string, Set<number>>
+    startedAt: Date,
+    finishedAt: Date | null,
     hintCount: number
     played: string[]
     completed: string[]
@@ -283,13 +285,32 @@ export default class Linkagram {
 
         document.getElementById("share-button")?.addEventListener('click', async () => {
             try {
-                if (navigator.share) {
-                    await navigator.share({
-                        title: 'Linkagram',
-                        text: `Found ${this.state.words.size} / ${this.wordList.words.size}`,
-                        url: document.URL
-                    });
+                if (!navigator.share) return;
+
+                // if you've completed it
+                let text = `Found ${this.state.words.size} / ${this.wordList.words.size}`;
+                if (this.state.words.size === this.wordList.words.size) {
+
+                    const finished = this.state.finishedAt!;
+                    const started = this.state.startedAt;
+
+                    const elapsed = (finished.getTime() - started.getTime());
+
+                    const hours = Math.floor((elapsed % 86400000) / 3600000);
+                    const minutes = Math.round(((elapsed % 86400000) % 3600000) / 60000);
+
+                    let hintsUsed = 0;
+                    this.state.hints.forEach((hints, _word) => {
+                        hintsUsed += hints.size;
+                    })
+                    text = `⌛ ${hours}h ${minutes}m\n💡 ${hintsUsed} ${(hintsUsed == 1) ? "hint" : "hints"}`;   
                 }
+
+                await navigator.share({
+                    title: 'Linkagram',
+                    text: text,
+                    url: document.URL
+                });
             } catch (error) {
                 console.warn(error);
             }
@@ -332,8 +353,7 @@ export default class Linkagram {
         if (this.state.words.has(word)) {
             this.flashButtons(buttons, FlashState.AlreadyFound);
         } else if (this.wordList.words.has(word)) {
-            this.state.hints.delete(word);
-            this.state.words.add(word);
+            this.onWordRevealed(word);
             this.state.save(this.state);
             this.flashButtons(buttons, FlashState.Valid);
             this.onWordListUpdated();
@@ -380,14 +400,12 @@ export default class Linkagram {
 
         const set = this.state.hints.get(word) || new Set();
         const potentials = Array(word.length).fill(0).map((_, idx) => idx).filter(i => !set.has(i));
+        set.add(this.generator.pick(potentials));
+        this.state.hints.set(word, set);
 
         // if this hint would reveal the word
         if (potentials.length == 1) {
-            this.state.hints.delete(word);
-            this.state.words.add(word);
-        } else {
-            set.add(this.generator.pick(potentials));
-            this.state.hints.set(word, set);
+            this.onWordRevealed(word);
         }
         this.state.save(this.state);
         this.onWordListUpdated();
@@ -441,7 +459,7 @@ export default class Linkagram {
         const today = new Date();
         const key = [today.getFullYear(), today.getMonth() + 1, today.getDate()].join('');
 
-        // if the last played game was not this one
+        // if we haven't played this game before
         // we don't just look at the last element as you might play different
         // games (by modifying the URL)
         let showHowToPlay = false;
@@ -457,6 +475,9 @@ export default class Linkagram {
 
             // increase how many games we have played
             this.state.played.push(key);
+
+            // record the time we started this particular board
+            this.state.startedAt = new Date();
 
             // if we didn't complete yesterdays puzzle
             if (!this.state.completed.includes(yesterdaysKey)) {
@@ -487,6 +508,7 @@ export default class Linkagram {
 
         // if we haven't already recorded the fact we completed this game then do it now
         if (!this.state.completed.includes(key)) {
+            this.state.finishedAt = new Date();
             this.state.completed.push(key);
             this.state.streak += 1;
             if (this.state.streak > this.state.maxStreak) {
@@ -495,6 +517,11 @@ export default class Linkagram {
             this.state.save(this.state);
         }
         celebrate(() => (this.showModal('stats-modal')(new Event("onGameEnded"))));
+    }
+
+    onWordRevealed = (word: string) => {
+        // this.state.hints.delete(word);
+        this.state.words.add(word);
     }
 
     addTileToSelection = (tile: LetterTile) => {

@@ -57,10 +57,14 @@ const loadState: (config: LinkagramConfig) => (LinkagramState) = (config: Linkag
         });
         return JSON.stringify(object);
     }
+    const startedAtString = localStorage.getItem(gameKey("startedAt"));
+    const finishedAtString = localStorage.getItem(gameKey("finishedAt"));
     return {
         seed: hashCode(key),
         words: new Set(wordsAlreadyFound),
         hints: hints,
+        startedAt: startedAtString ? new Date(startedAtString) : new Date(),
+        finishedAt: finishedAtString ? new Date(finishedAtString) : null,
         hintCount: parseInt(localStorage.getItem(accountKey("hints")) || "30", 10),
         played: JSON.parse(localStorage.getItem(accountKey("played")) || "[]"),
         completed: JSON.parse(localStorage.getItem(accountKey("completed")) || "[]"),
@@ -69,6 +73,8 @@ const loadState: (config: LinkagramConfig) => (LinkagramState) = (config: Linkag
         save: (state: LinkagramState) => {
             localStorage.setItem(gameKey("words"), JSON.stringify(Array.from(state.words)));
             localStorage.setItem(gameKey("hints"), serialise(state.hints));
+            localStorage.setItem(gameKey("startedAt"), state.startedAt.toString());
+            if (state.finishedAt) localStorage.setItem(gameKey("finishedAt"), state.finishedAt.toString());
             localStorage.setItem(accountKey("hints"), JSON.stringify(state.hintCount));
             localStorage.setItem(accountKey("played"), JSON.stringify(state.played));
             localStorage.setItem(accountKey("completed"), JSON.stringify(state.completed));
