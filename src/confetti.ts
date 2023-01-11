@@ -134,7 +134,7 @@ export const celebrate = (onEnded: () => void) => {
     // 5 seconds of fun
     setTimeout(() => {
         celebrating = false;
-    }, 5000);
+    }, 2500);
 
     const canvasBox = confetti.getBoundingClientRect();
     const addExplosion = () => {
