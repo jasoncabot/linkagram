@@ -13,9 +13,8 @@ export async function onRequest(context: {
   next: () => Promise<Response>;
   env: Env;
 }): Promise<Response> {
-  const { request, next } = context;
+  const { request, next, env } = context;
   const { pathname, origin } = new URL(request.url);
-
 
   // Serve up some dynamic text and data
   if (pathname === "/assets/sample.png") {
@@ -24,6 +23,8 @@ export async function onRequest(context: {
       method: 'POST',
       body: JSON.stringify(letters)
     });
+  } else if (pathname === "/pay") {
+    return tryApplePay(request, env);
   } else if (pathname === "/") {
     const { words, letters } = boardAndSolutionsForToday();
     const asset = await context.env.ASSETS.fetch(context.request.url)
@@ -43,6 +44,54 @@ export async function onRequest(context: {
   }
 
   return next();
+}
+
+const tryApplePay = async (request: Request, env: Env) => {
+  const validAppleVerificationDomains = new Set<string>([
+    "apple-pay-gateway.apple.com",
+    "cn-apple-pay-gateway.apple.com",
+    "apple-pay-gateway-nc-pod1.apple.com",
+    "apple-pay-gateway-nc-pod2.apple.com",
+    "apple-pay-gateway-nc-pod3.apple.com",
+    "apple-pay-gateway-nc-pod4.apple.com",
+    "apple-pay-gateway-nc-pod5.apple.com",
+    "apple-pay-gateway-pr-pod1.apple.com",
+    "apple-pay-gateway-pr-pod2.apple.com",
+    "apple-pay-gateway-pr-pod3.apple.com",
+    "apple-pay-gateway-pr-pod4.apple.com",
+    "apple-pay-gateway-pr-pod5.apple.com",
+    "cn-apple-pay-gateway-sh-pod1.apple.com",
+    "cn-apple-pay-gateway-sh-pod2.apple.com",
+    "cn-apple-pay-gateway-sh-pod3.apple.com",
+    "cn-apple-pay-gateway-tj-pod1.apple.com",
+    "cn-apple-pay-gateway-tj-pod2.apple.com",
+    "cn-apple-pay-gateway-tj-pod3.apple.com",
+    "apple-pay-gateway-cert.apple.com",
+    "cn-apple-pay-gateway-cert.apple.com"
+  ]);
+  const parameters = new URL(request.url).searchParams;
+
+  const validationURL = parameters.get('validationURL');
+  if (!validationURL || validAppleVerificationDomains.has(validationURL)) {
+    return new Response(null, { status: 400 });
+  }
+
+  // sooooon https://blog.cloudflare.com/mutual-tls-for-workers/
+  const merchIdentityCert = "";
+  return fetch(`https://${validationURL}/paymentSession`, {
+    // cert: merchIdentityCert,
+    // key: merchIdentityCert,
+    body: JSON.stringify({
+      merchantIdentifier: "merchant.com.jasoncabot.linkagram",
+      displayName: "Linkagram",
+      initiative: "web",
+      initiativeContext: "linkagram.jasoncabot.me"
+    }),
+    method: 'POST',
+    headers: {
+      'content-type': 'application/json;charset=UTF-8',
+    },
+  });  
 }
 
 class MetaUpdater {
@@ -77,12 +126,15 @@ const boardAndSolutionsForToday: () => { words: Set<string>, letters: string[] }
     seed: hashCode(key),
     words: setOfWords,
     hintCount: 0,
+    startedAt: new Date(),
+    finishedAt: null,
     hints: new Map<string, Set<number>>(),
     completed: [],
     maxStreak: 0,
     played: [],
     streak: 0,
-    save: () => { },
+    save: (_) => { },
+    purge: () => { },
   });
   game.initialise(smallWords, letterDistribution);
   return {

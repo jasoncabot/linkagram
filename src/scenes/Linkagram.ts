@@ -42,6 +42,7 @@ interface LinkagramState {
     streak: number
     maxStreak: number
     save: (state: LinkagramState) => (void)
+    purge: () => (void)
 }
 
 const buildMulberry32 = (seed: number) => {
@@ -274,6 +275,9 @@ export default class Linkagram {
         document.getElementById("wordlist-modal-close")?.addEventListener('click', hideModal('wordlist-modal'));
         document.getElementById("wordlist-modal-background")?.addEventListener('click', hideModal('wordlist-modal'));
 
+        document.getElementById("hints-modal-close")?.addEventListener('click', hideModal('hints-modal'));
+        document.getElementById("hints-modal-background")?.addEventListener('click', hideModal('hints-modal'));
+
         document.getElementById("how-to-play-button")?.addEventListener('click', this.showModal('how-to-play-modal'));
         document.getElementById("how-to-play-modal-close")?.addEventListener('click', hideModal('how-to-play-modal'));
         document.getElementById("how-to-play-modal-close-ok")?.addEventListener('click', hideModal('how-to-play-modal'));
@@ -282,6 +286,16 @@ export default class Linkagram {
         document.getElementById("stats-button")?.addEventListener('click', this.showModal('stats-modal'));
         document.getElementById("stats-modal-close")?.addEventListener('click', hideModal('stats-modal'));
         document.getElementById("stats-modal-background")?.addEventListener('click', hideModal('stats-modal'));
+
+        document.getElementById("get-hints-default-button")?.addEventListener('click', (e: MouseEvent) => {
+            this.increaseAvailableHints(12);
+            hideModal('hints-modal')(e);
+        });
+        document.getElementById("apple-pay-available")?.addEventListener('click', (e: MouseEvent) => {
+            this.purchaseHints(e, (e) => {
+                hideModal('hints-modal')(e);
+            });
+        })
 
         document.getElementById("share-button")?.addEventListener('click', async () => {
             try {
@@ -303,7 +317,7 @@ export default class Linkagram {
                     this.state.hints.forEach((hints, _word) => {
                         hintsUsed += hints.size;
                     })
-                    text = `⌛ ${hours}h ${minutes}m\n💡 ${hintsUsed} ${(hintsUsed == 1) ? "hint" : "hints"}`;   
+                    text = `⌛ ${hours}h ${minutes}m\n💡 ${hintsUsed} ${(hintsUsed == 1) ? "hint" : "hints"}`;
                 }
 
                 await navigator.share({
@@ -383,15 +397,58 @@ export default class Linkagram {
         return `<aside class="menu"><div><a onclick="document.linkagram.getMoreHints()">${hintsLeft} ${hintsLeft === 1 ? "hint" : "hints"} remaining</a></div>${sections.join('')}</aside>`;
     }
 
-    getMoreHints = () => {
-        this.state.hintCount += 12;
+    purchaseHints = (e: MouseEvent, onComplete: (e: MouseEvent) => void) => {
+        var request = {
+            countryCode: 'UK',
+            currencyCode: 'GBP',
+            supportedNetworks: ['visa', 'masterCard'],
+            merchantCapabilities: ['supports3DS'],
+            total: { label: '12 linkagram hints', amount: '0.99' },
+        }
+        const session = new window.ApplePaySession(3, request);
+        session.onvalidatemerchant = async (event: any /* ApplePayValidateMerchantEvent */) => {
+            const validationURL = event.validationURL;
+            const result = await fetch(`https://jasoncabot.linkagram.me/pay?validationURL=${validationURL}`)
+            session.completeMerchantValidation(result);
+        }
+        session.begin();
+
+        session.onpaymentauthorized = (event: { token: { paymentMethod: any, transactionIdentifier: string, paymentData: any } } /* ApplePayPayment */) => {
+            this.increaseAvailableHints(12);
+            session.completePayment({
+                status: window.ApplePaySession.STATUS_SUCCESS
+            });
+            onComplete(e);
+        }
+    }
+
+    increaseAvailableHints = (count: number) => {
+        this.state.hintCount += count;
         this.state.save(this.state);
         this.onWordListUpdated();
     }
 
-    hint = (word: string) => {
+    getMoreHints = async () => {
+        document.getElementById('hint-count')!.innerText = this.state.hintCount.toString();
+
+        this.showModal("hints-modal")(new Event("hint"));
+        if (window.ApplePaySession) {
+            const canPay = await window.ApplePaySession.canMakePaymentsWithActiveCard("merchant.com.jasoncabot.linkagram");
+            if (canPay) {
+                document.getElementById('get-hints-apple-pay')!.classList.remove('is-hidden');
+                document.getElementById('get-hints-default')!.classList.add('is-hidden');
+                return;
+            }
+        }
+
+        document.getElementById('get-hints-apple-pay')!.classList.add('is-hidden');
+        document.getElementById('get-hints-default')!.classList.remove('is-hidden');
+    }
+
+    hint = async (word: string) => {
         if (this.state.hintCount === 0) {
-            console.log('Unable to use any more hints')
+            document.getElementById('hint-count')!.innerText = this.state.hintCount.toString();
+            this.showModal("hints-modal")(new Event("hint"));
             return;
         }
 
@@ -507,6 +564,7 @@ export default class Linkagram {
             if (this.state.streak > this.state.maxStreak) {
                 this.state.maxStreak = this.state.streak;
             }
+            this.state.purge();
             this.state.save(this.state);
         }
         this.onStatsUpdated();
