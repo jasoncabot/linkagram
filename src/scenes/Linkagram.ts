@@ -408,7 +408,7 @@ export default class Linkagram {
         const session = new window.ApplePaySession(3, request);
         session.onvalidatemerchant = async (event: any /* ApplePayValidateMerchantEvent */) => {
             console.log("onvalidatemerchant = " + JSON.stringify(event));
-            const validationURL = event.validationURL;
+            const validationURL = encodeURIComponent(event.validationURL);
             const result = await fetch(`https://jasoncabot.linkagram.me/pay?validationURL=${validationURL}`)
             session.completeMerchantValidation(result);
         }
