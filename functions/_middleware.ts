@@ -69,16 +69,18 @@ const tryApplePay = async (request: Request, env: Env) => {
     "apple-pay-gateway-cert.apple.com",
     "cn-apple-pay-gateway-cert.apple.com"
   ]);
-  const parameters = new URL(request.url).searchParams;
 
-  const validationURL = decodeURIComponent(parameters.get('validationURL') || "");
-  if (!validationURL || validAppleVerificationDomains.has(validationURL)) {
+  const { searchParams } = new URL(request.url);
+
+  const validationURL = new URL(decodeURIComponent(searchParams.get('validationURL') || ""));
+  if (!validationURL || validAppleVerificationDomains.has(validationURL.host)) {
     return new Response(null, { status: 400 });
   }
 
   // sooooon https://blog.cloudflare.com/mutual-tls-for-workers/
   const merchIdentityCert = "";
-  return fetch(`https://${validationURL}/paymentSession`, {
+  const url = validationURL; // `https://${validationURL}/paymentSession`;
+  return fetch(url, {
     // cert: merchIdentityCert,
     // key: merchIdentityCert,
     body: JSON.stringify({
