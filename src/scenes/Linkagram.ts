@@ -399,7 +399,7 @@ export default class Linkagram {
 
     purchaseHints = (e: MouseEvent, onComplete: (e: MouseEvent) => void) => {
         var request = {
-            countryCode: 'UK',
+            countryCode: 'GB',
             currencyCode: 'GBP',
             supportedNetworks: ['visa', 'masterCard'],
             merchantCapabilities: ['supports3DS'],
@@ -407,6 +407,7 @@ export default class Linkagram {
         }
         const session = new window.ApplePaySession(3, request);
         session.onvalidatemerchant = async (event: any /* ApplePayValidateMerchantEvent */) => {
+            console.log("onvalidatemerchant = " + JSON.stringify(event));
             const validationURL = event.validationURL;
             const result = await fetch(`https://jasoncabot.linkagram.me/pay?validationURL=${validationURL}`)
             session.completeMerchantValidation(result);
@@ -414,6 +415,7 @@ export default class Linkagram {
         session.begin();
 
         session.onpaymentauthorized = (event: { token: { paymentMethod: any, transactionIdentifier: string, paymentData: any } } /* ApplePayPayment */) => {
+            console.log("onpaymentauthorized = " + JSON.stringify(event));
             this.increaseAvailableHints(12);
             session.completePayment({
                 status: window.ApplePaySession.STATUS_SUCCESS
@@ -433,11 +435,15 @@ export default class Linkagram {
 
         this.showModal("hints-modal")(new Event("hint"));
         if (window.ApplePaySession) {
-            const canPay = await window.ApplePaySession.canMakePaymentsWithActiveCard("merchant.com.jasoncabot.linkagram");
-            if (canPay) {
-                document.getElementById('get-hints-apple-pay')!.classList.remove('is-hidden');
-                document.getElementById('get-hints-default')!.classList.add('is-hidden');
-                return;
+            try {
+                const canPay = await window.ApplePaySession.canMakePaymentsWithActiveCard("merchant.com.jasoncabot.linkagram");
+                if (canPay) {
+                    document.getElementById('get-hints-apple-pay')!.classList.remove('is-hidden');
+                    document.getElementById('get-hints-default')!.classList.add('is-hidden');
+                    return;
+                }
+            } catch (err) {
+                console.error(err);
             }
         }
 
