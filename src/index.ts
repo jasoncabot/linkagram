@@ -80,6 +80,9 @@ const loadState: (config: LinkagramConfig) => (LinkagramState) = (config: Linkag
             localStorage.setItem(accountKey("completed"), JSON.stringify(state.completed));
             localStorage.setItem(accountKey("streak"), JSON.stringify(state.streak));
             localStorage.setItem(accountKey("maxStreak"), JSON.stringify(state.maxStreak));
+        },
+        purge: () => {
+            // TODO: clear up old storage
         }
     }
 }
