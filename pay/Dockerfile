@@ -1,5 +1,9 @@
 FROM node:18-alpine
 
+RUN apk add --no-cache tini
+# Tini is now available at /sbin/tini
+ENTRYPOINT ["/sbin/tini", "--"]
+
 WORKDIR /app
 
 COPY merchant_id.crt.pem ./
