@@ -6,6 +6,8 @@ import Linkagram from "./../src/scenes/Linkagram";
 export interface Env {
   IMAGE_GENERATOR: Fetcher;
   ASSETS: any;
+  APPLE_PAY_PROXY: string;
+  MERCH_IDENTITY_CERT: any;
 }
 
 export async function onRequest(context: {
@@ -72,28 +74,27 @@ const tryApplePay = async (request: Request, env: Env) => {
 
   const { searchParams } = new URL(request.url);
 
-  const validationURL = new URL(decodeURIComponent(searchParams.get('validationURL') || ""));
+  const rawValidationURL = searchParams.get('validationURL') || "";
+  const validationURL = new URL(decodeURIComponent(rawValidationURL));
   if (!validationURL || !validAppleVerificationDomains.has(validationURL.host)) {
     return new Response(null, { status: 400 });
   }
 
-  // sooooon https://blog.cloudflare.com/mutual-tls-for-workers/
-  const merchIdentityCert = "";
-  const url = validationURL; // `https://${validationURL}/paymentSession`;
-  return fetch(url, {
-    // cert: merchIdentityCert,
-    // key: merchIdentityCert,
-    body: JSON.stringify({
-      merchantIdentifier: "merchant.com.jasoncabot.linkagram",
-      displayName: "Linkagram",
-      initiative: "web",
-      initiativeContext: "linkagram.jasoncabot.me"
-    }),
-    method: 'POST',
-    headers: {
-      'content-type': 'application/json;charset=UTF-8',
-    },
-  });  
+  return fetch(`${env.APPLE_PAY_PROXY}?validationURL=${rawValidationURL}`, { method: 'POST' });
+  // // sooooon https://blog.cloudflare.com/mutual-tls-for-workers/
+  // const url = validationURL;
+  // return env.MERCH_IDENTITY_CERT.fetch(url, {
+  //   body: JSON.stringify({
+  //     merchantIdentifier: "merchant.com.jasoncabot.linkagram",
+  //     displayName: "Linkagram",
+  //     initiative: "web",
+  //     initiativeContext: "linkagram.jasoncabot.me"
+  //   }),
+  //   method: 'POST',
+  //   headers: {
+  //     'content-type': 'application/json;charset=UTF-8',
+  //   },
+  // });  
 }
 
 class MetaUpdater {

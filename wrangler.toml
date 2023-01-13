@@ -1,6 +1,9 @@
 name = "linkagram"
 compatibility_date = "2022-12-24"
 
+[vars]
+APPLE_PAY_PROXY = "localhost:3443"
+
 [[services]]
 binding = "IMAGE_GENERATOR"
 service = "linkagram-img"
