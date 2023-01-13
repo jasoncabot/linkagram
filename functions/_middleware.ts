@@ -73,7 +73,7 @@ const tryApplePay = async (request: Request, env: Env) => {
   const { searchParams } = new URL(request.url);
 
   const validationURL = new URL(decodeURIComponent(searchParams.get('validationURL') || ""));
-  if (!validationURL || validAppleVerificationDomains.has(validationURL.host)) {
+  if (!validationURL || !validAppleVerificationDomains.has(validationURL.host)) {
     return new Response(null, { status: 400 });
   }
 

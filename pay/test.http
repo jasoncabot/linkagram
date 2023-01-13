@@ -1,0 +1,15 @@
+### Apple Pay Proxy
+
+POST http://localhost:3443/session?validationURL=https%3A%2F%2Fapple-pay-gateway.apple.com%2Fpaymentservices%2FstartSession
+
+
+### Apple Pay
+
+POST https://apple-pay-gateway.apple.com/paymentservices/startSession
+
+{
+        "merchantIdentifier": "merchant.com.jasoncabot.linkagram",
+        "displayName": "Linkagram",
+        "initiative": "web",
+        "initiativeContext": "linkagram.jasoncabot.me"
+}

@@ -12,3 +12,4 @@ dist
 
 *.p12
 *.pem
+pay/bin
