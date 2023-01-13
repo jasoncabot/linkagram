@@ -256,7 +256,7 @@ export default class Linkagram {
 
             const tableCell = document.createElement("td");
             tableCell.classList.add('is-unselectable');
-            tableCell.innerHTML = `<div class="is-flex is-justify-content-center is-align-content-center"><a class="letter is-clickable">${tile.value}</a></div>`;
+            tableCell.innerHTML = `<div class="is-flex is-justify-content-center is-align-content-center"><a class="letter is-clickable is-uppercase">${tile.value}</a></div>`;
             row?.appendChild(tableCell);
 
             const letter = tableCell.children[0].children[0] as HTMLElement;
@@ -317,7 +317,15 @@ export default class Linkagram {
                     this.state.hints.forEach((hints, _word) => {
                         hintsUsed += hints.size;
                     })
-                    text = `⌛ ${hours}h ${minutes}m\n💡 ${hintsUsed} ${(hintsUsed == 1) ? "hint" : "hints"}`;
+
+                    const lines = [
+                        `⌛ ${hours}h ${minutes}m`,
+                        `💡 ${hintsUsed} ${(hintsUsed == 1) ? "hint" : "hints"}`
+                    ];
+                    if (this.state.streak > 2) {
+                        lines.push(`🔥 ${this.state.streak}`);
+                    }
+                    text = lines.join('\n');
                 }
 
                 await navigator.share({
@@ -381,14 +389,14 @@ export default class Linkagram {
         const sections = Object.keys(this.wordList.byLength).sort().map((length: string) => {
             const words = this.wordList.byLength[parseInt(length)].map(word => {
                 if (this.state.words.has(word)) {
-                    return `<li class="is-unselectable"><a onclick="document.linkagram.define('${word}')">${word}</a></li>`
+                    return `<li class="is-unselectable"><a class="is-family-monospace" onclick="document.linkagram.define('${word}')">${word}</a></li>`
                 } else {
                     const revealedIndexes = this.state.hints.get(word) || new Set();
                     const stillToGuess = Array(word.length)
                         .fill("_")
                         .map((placeholder, idx) => revealedIndexes.has(idx) ? word.charAt(idx) : placeholder)
                         .join(" ");
-                    return `<li class="is-unselectable"><a onclick="document.linkagram.hint('${word}')">${stillToGuess}</a></li>`
+                    return `<li class="is-unselectable"><a class="is-family-monospace" onclick="document.linkagram.hint('${word}')">${stillToGuess}</a></li>`
                 }
             }).join('');
             return `<p class="menu-label">${length} letters</p><ol class="menu-list">${words}</ol></p>`;
@@ -547,6 +555,9 @@ export default class Linkagram {
                 // soz no streak for you
                 this.state.streak = 0;
             }
+
+            // go on then, have 5 hints
+            this.state.hintCount = Math.max(this.state.hintCount, 5);
 
             this.state.save(this.state);
         }
