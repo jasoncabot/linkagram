@@ -417,11 +417,14 @@ export default class Linkagram {
         session.onvalidatemerchant = async (event: any /* ApplePayValidateMerchantEvent */) => {
             console.log("onvalidatemerchant = " + JSON.stringify(event));
             const validationURL = encodeURIComponent(event.validationURL);
-            const result = await fetch(`https://linkagram.jasoncabot.me/pay?validationURL=${validationURL}`)
-            session.completeMerchantValidation(result);
+            try {
+                const result = await fetch(`https://linkagram.jasoncabot.me/pay?validationURL=${validationURL}`);
+                console.log("onvalidatemerchant.result = " + JSON.stringify(result));
+                session.completeMerchantValidation(result);
+            } catch (error) {
+                console.log(error);
+            }
         }
-        session.begin();
-
         session.onpaymentauthorized = (event: { token: { paymentMethod: any, transactionIdentifier: string, paymentData: any } } /* ApplePayPayment */) => {
             console.log("onpaymentauthorized = " + JSON.stringify(event));
             this.increaseAvailableHints(12);
@@ -430,6 +433,8 @@ export default class Linkagram {
             });
             onComplete(e);
         }
+
+        session.begin();
     }
 
     increaseAvailableHints = (count: number) => {
