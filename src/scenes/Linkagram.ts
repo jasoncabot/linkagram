@@ -418,12 +418,13 @@ export default class Linkagram {
             console.log("onvalidatemerchant = " + JSON.stringify(event));
             const validationURL = encodeURIComponent(event.validationURL);
             try {
-                const result = await fetch(`https://linkagram.jasoncabot.me/pay?validationURL=${validationURL}`, {
+                const merchantValidationResponse = await fetch(`https://linkagram.jasoncabot.me/pay?validationURL=${validationURL}`, {
                     method: 'POST',
                     headers: {
                         'content-type': 'application/json;charset=UTF-8'
                     }
                 });
+                const result = await merchantValidationResponse.json();
                 console.log("onvalidatemerchant.result = " + JSON.stringify(result));
                 session.completeMerchantValidation(result);
             } catch (error) {
