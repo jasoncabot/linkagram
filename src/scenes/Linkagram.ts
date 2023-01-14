@@ -565,6 +565,8 @@ export default class Linkagram {
             this.state.hintCount = Math.max(this.state.hintCount, 5);
 
             this.state.save(this.state);
+
+            this.onWordListUpdated();
         }
 
         this.onStatsUpdated();
