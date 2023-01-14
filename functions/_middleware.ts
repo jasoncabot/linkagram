@@ -80,7 +80,12 @@ const tryApplePay = async (request: Request, env: Env) => {
     return new Response(null, { status: 400 });
   }
 
-  return fetch(`${env.APPLE_PAY_PROXY}?validationURL=${rawValidationURL}`, { method: 'POST' });
+  return fetch(`${env.APPLE_PAY_PROXY}?validationURL=${rawValidationURL}`, {
+    method: 'POST',
+    headers: {
+      'content-type': 'application/json;charset=UTF-8',
+    },
+  });
   // // sooooon https://blog.cloudflare.com/mutual-tls-for-workers/
   // const url = validationURL;
   // return env.MERCH_IDENTITY_CERT.fetch(url, {
