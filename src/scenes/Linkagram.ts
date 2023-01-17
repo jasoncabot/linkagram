@@ -438,48 +438,54 @@ export default class Linkagram {
             }
         })();
 
-        const clientSecretResponse = await (await fetch(`/hint_payment`, {
-            method: 'POST',
-            headers: {
-                'content-type': 'application/json;charset=UTF-8',
-            },
-        })).json();
+        try {
+            const response = await fetch(`/hint_payment`, {
+                method: 'POST',
+                headers: {
+                    'content-type': 'application/json;charset=UTF-8',
+                },
+            });
+            const clientSecretResponse = await response.json();
 
 
-        const onPaymentComplete = () => {
-            this.increaseAvailableHints(12);
-            document.getElementById("hints-modal")?.classList.remove('is-active')
-        }
 
-        const clientSecret = clientSecretResponse.secret;
+            const onPaymentComplete = () => {
+                this.increaseAvailableHints(12);
+                document.getElementById("hints-modal")?.classList.remove('is-active')
+            }
 
-        paymentRequest.on('paymentmethod', async (ev) => {
-            console.log("going with secret " + clientSecret);
-            try {
-                const { paymentIntent, error: confirmError } = await stripe.confirmCardPayment(
-                    clientSecret,
-                    { payment_method: ev.paymentMethod.id },
-                    { handleActions: false }
-                );
+            const clientSecret = clientSecretResponse.secret;
 
-                if (confirmError) {
-                    ev.complete('fail');
-                } else {
-                    ev.complete('success');
-                    if (paymentIntent.status === "requires_action") {
-                        const { error } = await stripe.confirmCardPayment(clientSecret);
-                        if (!error) {
+            paymentRequest.on('paymentmethod', async (ev) => {
+                console.log("going with secret " + clientSecret);
+                try {
+                    const { paymentIntent, error: confirmError } = await stripe.confirmCardPayment(
+                        clientSecret,
+                        { payment_method: ev.paymentMethod.id },
+                        { handleActions: false }
+                    );
+
+                    if (confirmError) {
+                        ev.complete('fail');
+                    } else {
+                        ev.complete('success');
+                        if (paymentIntent.status === "requires_action") {
+                            const { error } = await stripe.confirmCardPayment(clientSecret);
+                            if (!error) {
+                            } else {
+                                onPaymentComplete();
+                            }
                         } else {
                             onPaymentComplete();
                         }
-                    } else {
-                        onPaymentComplete();
                     }
+                } catch (err) {
+                    console.error(err);
                 }
-            } catch (err) {
-                console.error(err);
-            }
-        });
+            });
+        } catch (err) {
+            console.error(err);
+        }
     }
 
     hint = async (word: string) => {
@@ -593,7 +599,7 @@ export default class Linkagram {
             this.showModal('how-to-play-modal')(new Event("onGameEnded"))
         }
 
-        const stripeKey: string = "pk_live_51MQ4wTDjdwEKhnhgi8jlWuTSTjrokSs6lBqHIFP9O6c7Sot00xW54LRCXprU1v2ToVuAoTnvr5gdOWG0jRKAyrZn00pWtSmzKq";
+        const stripeKey: string = "pk_test_51MQ4wTDjdwEKhnhg7DZom0chznhxOKA2ZaUO8hNpNxlSLfzAyU7uG6ka7w1o8QEQfgnSqwdHykfxnCb6qzqSL4qS00BR6OYcaI";
         this.stripe = await loadStripe(stripeKey, { apiVersion: "2022-11-15" });
     }
 

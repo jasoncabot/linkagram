@@ -20,14 +20,12 @@ export async function onRequest(context: {
   // Serve up some dynamic text and data
   if (pathname === "/assets/sample.png") {
     const { letters } = boardAndSolutionsForToday();
-    return context.env.IMAGE_GENERATOR.fetch(context.request, {
+    return context.env.IMAGE_GENERATOR.fetch(request, {
       method: 'POST',
       body: JSON.stringify(letters)
     });
   } else if (pathname === "/hint_payment") {
-    return context.env.PAYMENT_SERVICE.fetch(context.request, {
-      method: 'POST'
-    });
+    return context.env.PAYMENT_SERVICE.fetch(request);
   } else if (pathname === "/") {
     const { words, letters } = boardAndSolutionsForToday();
     const asset = await context.env.ASSETS.fetch(context.request.url)
