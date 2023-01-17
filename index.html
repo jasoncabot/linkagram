@@ -16,10 +16,15 @@
   <meta property="article:author" content="https://jasoncabot.me" />
   <script type="module" src="/src/index.ts"></script>
   <script defer src="https://use.fontawesome.com/releases/v5.3.1/js/all.js"></script>
-  <script src="https://applepay.cdn-apple.com/jsapi/v1/apple-pay-sdk.js"></script>
 </head>
 
 <body class="is-clipped">
+  <div class="is-hidden">
+    <h1>Linkagram</h1>
+    <h2>Play for free this daily fun word game</h2>
+    <p>Find all words in a grid, using each letter only once</p>
+    <p>Todays letters are shown below. You can use each letter only once per word and need to try and find all of them. The total amount of words to find include 3000 of the most common english words, so although you might know words that aren't recognised, that's because a larger word list is just less fun to complete!</p>
+  </div>
   <div class="columns reverse-columns main-container is-full m-0">
     <div class="column is-one-quarter wordlist-container">
       <div id="wordlist"></div>
@@ -34,7 +39,7 @@
       <svg id="connections"></svg>
     </div>
     <div class="has-text-right p-1">
-      <button id="stats-button" class="button is-small  mr-2 mt-1">
+      <button id="stats-button" class="button is-small mr-2 mt-1">
         <span class="icon">
           <i class="fas fa-chart-bar"></i>
         </span>
@@ -59,20 +64,13 @@
     <div class="modal-content box content" id="hints-modal-content">
       <h1 class="title is-5">Hints</h1>
       <p>
-        You have <span id="hint-count">0</span> hints remaining
+        You have <span id="hint-count">0</span> hints remaining. You can buy some more as a nice thing to do 😊
       </p>
 
-      <div class="is-flex is-justify-content-center is-hidden" id="get-hints-default">
-        <button id="get-hints-default-button" class="button is-primary">
-          <span class="icon">
-            <i class="fas fa-plus"></i>
-          </span>
-          <span>12</span>
-        </button>
-      </div>
-
-      <div class="is-flex is-justify-content-center is-hidden" id="get-hints-apple-pay">
-        <apple-pay-button buttonstyle="black" type="buy" id="apple-pay-available"></apple-pay-button>
+      <div class="is-flex is-justify-content-center" id="get-hints-pay">
+        <button id="payment-request-loading" class="button is-primary is-loading">Loading</button>
+        <div id="payment-request-button" class="is-flex-grow-1">
+        </div>
       </div>
       
     </div>

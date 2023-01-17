@@ -1,5 +1,6 @@
 import { buildTrie, isPrefix, isWord, TrieNode } from '../trie';
 import { celebrate } from "../confetti";
+import { loadStripe, Stripe } from "@stripe/stripe-js";
 
 interface LetterTile {
     index: number,
@@ -66,6 +67,7 @@ export default class Linkagram {
     config: LinkagramConfig;
     wordListPopup: any | undefined;
     state: LinkagramState;
+    stripe: Stripe | null;
 
     constructor(data: LinkagramConfig, state: LinkagramState) {
         this.selectedIndexes = [];
@@ -78,6 +80,7 @@ export default class Linkagram {
         };
         this.state = state;
         this.config = data;
+        this.stripe = null;
 
         const prng = buildMulberry32(state.seed);
         this.generator = {
@@ -287,16 +290,6 @@ export default class Linkagram {
         document.getElementById("stats-modal-close")?.addEventListener('click', hideModal('stats-modal'));
         document.getElementById("stats-modal-background")?.addEventListener('click', hideModal('stats-modal'));
 
-        document.getElementById("get-hints-default-button")?.addEventListener('click', (e: MouseEvent) => {
-            this.increaseAvailableHints(12);
-            hideModal('hints-modal')(e);
-        });
-        document.getElementById("apple-pay-available")?.addEventListener('click', (e: MouseEvent) => {
-            this.purchaseHints(e, (e) => {
-                hideModal('hints-modal')(e);
-            });
-        })
-
         document.getElementById("share-button")?.addEventListener('click', async () => {
             try {
                 if (!navigator.share) return;
@@ -336,7 +329,7 @@ export default class Linkagram {
             } catch (error) {
                 console.warn(error);
             }
-        })
+        });
 
         this.onWordListUpdated();
         this.onSelectionChanged();
@@ -405,44 +398,6 @@ export default class Linkagram {
         return `<aside class="menu"><div><a onclick="document.linkagram.getMoreHints()">${hintsLeft} ${hintsLeft === 1 ? "hint" : "hints"} remaining</a></div>${sections.join('')}</aside>`;
     }
 
-    purchaseHints = (e: MouseEvent, onComplete: (e: MouseEvent) => void) => {
-        var request = {
-            countryCode: 'GB',
-            currencyCode: 'GBP',
-            supportedNetworks: ['visa', 'masterCard'],
-            merchantCapabilities: ['supports3DS'],
-            total: { label: '12 linkagram hints', amount: '0.99' },
-        }
-        const session = new window.ApplePaySession(3, request);
-        session.onvalidatemerchant = async (event: any /* ApplePayValidateMerchantEvent */) => {
-            console.log("onvalidatemerchant = " + JSON.stringify(event));
-            const validationURL = encodeURIComponent(event.validationURL);
-            try {
-                const merchantValidationResponse = await fetch(`https://linkagram.jasoncabot.me/pay?validationURL=${validationURL}`, {
-                    method: 'POST',
-                    headers: {
-                        'content-type': 'application/json;charset=UTF-8'
-                    }
-                });
-                const result = await merchantValidationResponse.json();
-                console.log("onvalidatemerchant.result = " + JSON.stringify(result));
-                session.completeMerchantValidation(result);
-            } catch (error) {
-                console.log(error);
-            }
-        }
-        session.onpaymentauthorized = (event: { token: { paymentMethod: any, transactionIdentifier: string, paymentData: any } } /* ApplePayPayment */) => {
-            console.log("onpaymentauthorized = " + JSON.stringify(event));
-            this.increaseAvailableHints(12);
-            session.completePayment({
-                status: window.ApplePaySession.STATUS_SUCCESS
-            });
-            onComplete(e);
-        }
-
-        session.begin();
-    }
-
     increaseAvailableHints = (count: number) => {
         this.state.hintCount += count;
         this.state.save(this.state);
@@ -453,21 +408,78 @@ export default class Linkagram {
         document.getElementById('hint-count')!.innerText = this.state.hintCount.toString();
 
         this.showModal("hints-modal")(new Event("hint"));
-        if (window.ApplePaySession) {
+
+        if (!this.stripe) return;
+
+        const stripe = this.stripe;
+
+        const paymentRequest = stripe.paymentRequest({
+            country: 'GB',
+            currency: 'gbp',
+            total: {
+                label: '12 linkagram hints',
+                amount: 99,
+            }
+        });
+
+        const elements = stripe.elements();
+        const prButton = elements.create('paymentRequestButton', {
+            paymentRequest,
+        });
+
+        (async () => {
+            document.getElementById('payment-request-loading')?.classList.remove('is-hidden');
+            const result = await paymentRequest.canMakePayment();
+            if (result) {
+                prButton.mount('#payment-request-button');
+                document.getElementById('payment-request-loading')?.classList.add('is-hidden');
+            } else {
+                document.getElementById('payment-request-button')?.classList.add('is-hidden');
+            }
+        })();
+
+        const clientSecretResponse = await (await fetch(`/hint_payment`, {
+            method: 'POST',
+            headers: {
+                'content-type': 'application/json;charset=UTF-8',
+            },
+        })).json();
+
+
+        const onPaymentComplete = () => {
+            this.increaseAvailableHints(12);
+            document.getElementById("hints-modal")?.classList.remove('is-active')
+        }
+
+        const clientSecret = clientSecretResponse.secret;
+
+        paymentRequest.on('paymentmethod', async (ev) => {
+            console.log("going with secret " + clientSecret);
             try {
-                const canPay = await window.ApplePaySession.canMakePaymentsWithActiveCard("merchant.com.jasoncabot.linkagram");
-                if (canPay) {
-                    document.getElementById('get-hints-apple-pay')!.classList.remove('is-hidden');
-                    document.getElementById('get-hints-default')!.classList.add('is-hidden');
-                    return;
+                const { paymentIntent, error: confirmError } = await stripe.confirmCardPayment(
+                    clientSecret,
+                    { payment_method: ev.paymentMethod.id },
+                    { handleActions: false }
+                );
+
+                if (confirmError) {
+                    ev.complete('fail');
+                } else {
+                    ev.complete('success');
+                    if (paymentIntent.status === "requires_action") {
+                        const { error } = await stripe.confirmCardPayment(clientSecret);
+                        if (!error) {
+                        } else {
+                            onPaymentComplete();
+                        }
+                    } else {
+                        onPaymentComplete();
+                    }
                 }
             } catch (err) {
                 console.error(err);
             }
-        }
-
-        document.getElementById('get-hints-apple-pay')!.classList.add('is-hidden');
-        document.getElementById('get-hints-default')!.classList.remove('is-hidden');
+        });
     }
 
     hint = async (word: string) => {
@@ -537,7 +549,7 @@ export default class Linkagram {
         }
     }
 
-    onGameStarted = () => {
+    onGameStarted = async () => {
         const today = new Date();
         const key = [today.getFullYear(), today.getMonth() + 1, today.getDate()].join('');
 
@@ -580,6 +592,9 @@ export default class Linkagram {
         if (showHowToPlay) {
             this.showModal('how-to-play-modal')(new Event("onGameEnded"))
         }
+
+        const stripeKey: string = "pk_live_51MQ4wTDjdwEKhnhgi8jlWuTSTjrokSs6lBqHIFP9O6c7Sot00xW54LRCXprU1v2ToVuAoTnvr5gdOWG0jRKAyrZn00pWtSmzKq";
+        this.stripe = await loadStripe(stripeKey, { apiVersion: "2022-11-15" });
     }
 
     onGameEnded = () => {

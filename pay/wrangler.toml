@@ -1,0 +1,4 @@
+name = "linkagram-pay"
+main = "src/index.ts"
+compatibility_date = "2023-01-17"
+node_compat = true
