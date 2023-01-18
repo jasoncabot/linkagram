@@ -6,6 +6,7 @@ import Linkagram from "./../src/scenes/Linkagram";
 export interface Env {
   IMAGE_GENERATOR: Fetcher;
   PAYMENT_SERVICE: Fetcher;
+  PAYMENT_SERVICE_URL: string;
   ASSETS: any;
 }
 
@@ -25,7 +26,7 @@ export async function onRequest(context: {
       body: JSON.stringify(letters)
     });
   } else if (pathname === "/hint_payment") {
-    return context.env.PAYMENT_SERVICE.fetch(request);
+    return fetch(env.PAYMENT_SERVICE_URL, {method: request.method});
   } else if (pathname === "/") {
     const { words, letters } = boardAndSolutionsForToday();
     const asset = await context.env.ASSETS.fetch(context.request.url)
