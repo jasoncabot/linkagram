@@ -599,7 +599,7 @@ export default class Linkagram {
             this.showModal('how-to-play-modal')(new Event("onGameEnded"))
         }
 
-        const stripeKey: string = "pk_test_51MQ4wTDjdwEKhnhg7DZom0chznhxOKA2ZaUO8hNpNxlSLfzAyU7uG6ka7w1o8QEQfgnSqwdHykfxnCb6qzqSL4qS00BR6OYcaI";
+        const stripeKey: string = "pk_live_51MQ4wTDjdwEKhnhgi8jlWuTSTjrokSs6lBqHIFP9O6c7Sot00xW54LRCXprU1v2ToVuAoTnvr5gdOWG0jRKAyrZn00pWtSmzKq";
         this.stripe = await loadStripe(stripeKey, { apiVersion: "2022-11-15" });
     }
 
