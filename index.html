@@ -5,6 +5,13 @@
   <title>Linkagram - Find All the words</title>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+  <link rel="manifest" href="/site.webmanifest">
+  <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+  <meta name="msapplication-TileColor" content="#da532c">
+  <meta name="theme-color" content="#ffffff">
   <meta property="description" content="Find all the words on a 4x4 grid. A new puzzle is available each day.">
   <meta property="og:title" content="Linkagram - Daily fun word puzzle" />
   <meta property="og:site_name" content="Linkagram" />
@@ -67,8 +74,8 @@
         You have <span id="hint-count">0</span> hints remaining. You can buy some more as a nice thing to do 😊
       </p>
 
-      <div class="is-flex is-justify-content-center" id="get-hints-pay">
-        <button id="payment-request-loading" class="button is-primary is-loading">Loading</button>
+      <div class="is-flex" id="get-hints-pay">
+        <button id="payment-request-loading" class="button is-primary is-loading is-flex-grow-1">Loading</button>
         <div id="payment-request-button" class="is-flex-grow-1">
         </div>
       </div>
