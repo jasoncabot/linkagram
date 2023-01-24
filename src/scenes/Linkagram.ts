@@ -409,7 +409,21 @@ export default class Linkagram {
 
         this.showModal("hints-modal")(new Event("hint"));
 
-        if (!this.stripe) return;
+        const onPaymentComplete = () => {
+            this.increaseAvailableHints(12);
+            document.getElementById("hints-modal")?.classList.remove('is-active')
+        }
+
+        const onPaymentError = (err: any) => {
+            document.getElementById('payment-request-loading')?.classList.remove('is-hidden');
+            document.getElementById('payment-request-loading')?.classList.remove('is-loading');
+            console.error(err);    
+        }
+
+        if (!this.stripe) {
+            onPaymentError(new Error("unable to load stripe"));
+            return;
+        };
 
         const stripe = this.stripe;
 
@@ -429,6 +443,7 @@ export default class Linkagram {
 
         (async () => {
             document.getElementById('payment-request-loading')?.classList.remove('is-hidden');
+            document.getElementById('payment-request-loading')?.classList.add('is-loading');
             const result = await paymentRequest.canMakePayment();
             if (result) {
                 prButton.mount('#payment-request-button');
@@ -446,18 +461,9 @@ export default class Linkagram {
                 },
             });
             const clientSecretResponse = await response.json();
-
-
-
-            const onPaymentComplete = () => {
-                this.increaseAvailableHints(12);
-                document.getElementById("hints-modal")?.classList.remove('is-active')
-            }
-
             const clientSecret = clientSecretResponse.secret;
 
             paymentRequest.on('paymentmethod', async (ev) => {
-                console.log("going with secret " + clientSecret);
                 try {
                     const { paymentIntent, error: confirmError } = await stripe.confirmCardPayment(
                         clientSecret,
@@ -480,11 +486,11 @@ export default class Linkagram {
                         }
                     }
                 } catch (err) {
-                    console.error(err);
+                    onPaymentError(err);
                 }
             });
         } catch (err) {
-            console.error(err);
+            onPaymentError(err);
         }
     }
 
@@ -586,7 +592,7 @@ export default class Linkagram {
             }
 
             // go on then, have 5 hints
-            this.state.hintCount = Math.max(this.state.hintCount, 5);
+            this.state.hintCount = Math.max(this.state.hintCount, 2);
 
             this.state.save(this.state);
 
