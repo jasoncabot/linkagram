@@ -10,7 +10,6 @@ const parseConfig: () => LinkagramConfig = () => {
         const today = new Date();
         // a unique puzzle every day ;)
         const id = [today.getFullYear(), today.getMonth() + 1, today.getDate()].join('');
-        console.log("ID = " + id);
         parameters.set('id', id);
     }
     if (!parameters.get('width')) {
