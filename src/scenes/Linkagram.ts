@@ -591,8 +591,8 @@ export default class Linkagram {
                 this.state.streak = 0;
             }
 
-            // go on then, have 5 hints
-            this.state.hintCount = Math.max(this.state.hintCount, 2);
+            // go on then, have a minimum number of hints each day
+            this.state.hintCount = Math.max(this.state.hintCount, 4);
 
             this.state.save(this.state);
 
