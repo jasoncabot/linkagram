@@ -554,8 +554,6 @@ export default class Linkagram {
         const wordlistModal = document.getElementById('wordlist-modal-content')!;
         wordlistModal.innerHTML = wordlist.innerHTML;
 
-        document.title = `Linkagram - ${found} / ${total} word${total === 1 ? "" : "s"}`;
-
         if (found === total) {
             this.onGameEnded();
         }
