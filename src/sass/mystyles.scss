@@ -4,10 +4,14 @@
 html, body {
     padding: 0;
     margin: 0;
-    height: -webkit-fill-available;
+    height: 100vh;
     overflow: none;
     touch-action: pinch-zoom;
     color: $text;
+}
+
+#button-container {
+    margin-top: env(safe-area-inset-top);
 }
 
 @media(max-width: $tablet) {
