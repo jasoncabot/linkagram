@@ -68,6 +68,7 @@ export default class Linkagram {
     wordListPopup: any | undefined;
     state: LinkagramState;
     stripe: Stripe | null;
+    currentModals: HTMLElement[];
 
     constructor(data: LinkagramConfig, state: LinkagramState) {
         this.selectedIndexes = [];
@@ -81,6 +82,7 @@ export default class Linkagram {
         this.state = state;
         this.config = data;
         this.stripe = null;
+        this.currentModals = [];
 
         const prng = buildMulberry32(state.seed);
         this.generator = {
@@ -184,7 +186,22 @@ export default class Linkagram {
     showModal = (id: string) => {
         return (e: Event) => {
             e.preventDefault();
-            document.getElementById(id)?.classList.add('is-active');
+            const modal = document.getElementById(id);
+            if (!modal) return;
+            modal.classList.add('is-active');
+
+            this.currentModals.push(modal);
+            this.currentModals.forEach((m, i) => m.style.zIndex = (i*100).toString());
+        };
+    }
+
+    hideModal = (id: string) => {
+        return (e: Event) => {
+            e.preventDefault();
+            const modal = document.getElementById(id);
+            if (!modal) return;
+            modal.classList.remove('is-active');
+            this.currentModals = this.currentModals.filter(m => m != modal);
         };
     }
 
@@ -268,27 +285,23 @@ export default class Linkagram {
             return letter;
         });
 
-        const hideModal = (id: string) => {
-            return (e: Event) => {
-                e.preventDefault();
-                document.getElementById(id)?.classList.remove('is-active');
-            };
-        }
         document.getElementById("total-found")?.addEventListener('click', this.showModal('wordlist-modal'));
-        document.getElementById("wordlist-modal-close")?.addEventListener('click', hideModal('wordlist-modal'));
-        document.getElementById("wordlist-modal-background")?.addEventListener('click', hideModal('wordlist-modal'));
+        document.getElementById("wordlist-modal-close")?.addEventListener('click', this.hideModal('wordlist-modal'));
+        document.getElementById("wordlist-modal-background")?.addEventListener('click', this.hideModal('wordlist-modal'));
 
-        document.getElementById("hints-modal-close")?.addEventListener('click', hideModal('hints-modal'));
-        document.getElementById("hints-modal-background")?.addEventListener('click', hideModal('hints-modal'));
+        document.getElementById("hints-modal-close")?.addEventListener('click', this.hideModal('hints-modal'));
+        document.getElementById("hints-modal-background")?.addEventListener('click', this.hideModal('hints-modal'));
+
+        document.getElementById("show-hints")?.addEventListener('click', this.showModal('hints-modal'));
 
         document.getElementById("how-to-play-button")?.addEventListener('click', this.showModal('how-to-play-modal'));
-        document.getElementById("how-to-play-modal-close")?.addEventListener('click', hideModal('how-to-play-modal'));
-        document.getElementById("how-to-play-modal-close-ok")?.addEventListener('click', hideModal('how-to-play-modal'));
-        document.getElementById("how-to-play-modal-background")?.addEventListener('click', hideModal('how-to-play-modal'));
+        document.getElementById("how-to-play-modal-close")?.addEventListener('click', this.hideModal('how-to-play-modal'));
+        document.getElementById("how-to-play-modal-close-ok")?.addEventListener('click', this.hideModal('how-to-play-modal'));
+        document.getElementById("how-to-play-modal-background")?.addEventListener('click', this.hideModal('how-to-play-modal'));
 
         document.getElementById("stats-button")?.addEventListener('click', this.showModal('stats-modal'));
-        document.getElementById("stats-modal-close")?.addEventListener('click', hideModal('stats-modal'));
-        document.getElementById("stats-modal-background")?.addEventListener('click', hideModal('stats-modal'));
+        document.getElementById("stats-modal-close")?.addEventListener('click', this.hideModal('stats-modal'));
+        document.getElementById("stats-modal-background")?.addEventListener('click', this.hideModal('stats-modal'));
 
         document.getElementById("share-button")?.addEventListener('click', async () => {
             try {

@@ -3,6 +3,7 @@
 
 <head>
   <title>Linkagram - Find All the words</title>
+  <meta name="description" content="Find all the words on a 4x4 grid. A new puzzle is available each day.">
   <meta charset="utf-8" />
   <meta name="viewport" content="viewport-fit=cover, width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
@@ -36,9 +37,9 @@
     <div class="column is-one-quarter wordlist-container">
       <div id="wordlist"></div>
     </div>
-    <div class="column is-flex is-flex-direction-column mt-6" id="game">
+    <div class="column is-flex is-flex-direction-column" id="game">
       <div id="total-found"
-        class="is-flex is-flex-grow-1 is-size-2 is-justify-content-center is-unselectable is-clickable"></div>
+        class="is-flex is-flex-grow-1 is-justify-content-center is-unselectable is-clickable"></div>
       <div id="board" class="is-flex is-flex-grow-2">
         <table tabindex="0"></table>
       </div>
@@ -71,6 +72,12 @@
     <div class="modal-content box content" id="hints-modal-content">
       <h1 class="title is-5">Hints</h1>
       <p>
+        Show the word list by selecting the number of found and total words
+      </p>
+      <p>
+        Use hints by selecting an unknown word from the word list to reveal a single letter
+      </p>
+      <p>
         You have <span id="hint-count">0</span> hints remaining. You can buy 12 more as a nice thing to do 😊
       </p>
 
@@ -94,6 +101,7 @@
         <li>Each letter can be used once</li>
         <li>Find all the words</li>
         <li>Use hints if you are stuck</li>
+        <li>Select an unknown word to use a hint</li>
       </ul>
       <div class="is-flex is-justify-content-center">
         <button id="how-to-play-modal-close-ok" class="button is-primary">
@@ -101,6 +109,12 @@
             <i class="fas fa-check"></i>
           </span>
           <span>Play</span>
+        </button>
+        <button id="show-hints" class="ml-3 button is-secondary">
+          <span class="icon">
+            <i class="fas fa-question"></i>
+          </span>
+          <span>Hints</span>
         </button>
       </div>
     </div>
