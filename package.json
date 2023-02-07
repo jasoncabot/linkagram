@@ -7,6 +7,7 @@
   "scripts": {
     "dev": "vite",
     "wrangler": "wrangler pages dev dist",
+    "word": "node scripts/add-word.js",
     "build": "vite build",
     "serve": "vite preview"
   },
