@@ -292,7 +292,7 @@ export default class Linkagram {
         document.getElementById("hints-modal-close")?.addEventListener('click', this.hideModal('hints-modal'));
         document.getElementById("hints-modal-background")?.addEventListener('click', this.hideModal('hints-modal'));
 
-        document.getElementById("show-hints")?.addEventListener('click', this.showModal('hints-modal'));
+        document.getElementById("show-hints")?.addEventListener('click', this.showHintModal);
 
         document.getElementById("how-to-play-button")?.addEventListener('click', this.showModal('how-to-play-modal'));
         document.getElementById("how-to-play-modal-close")?.addEventListener('click', this.hideModal('how-to-play-modal'));
@@ -408,7 +408,7 @@ export default class Linkagram {
             return `<p class="menu-label">${length} letters</p><ol class="menu-list">${words}</ol></p>`;
         });
         const hintsLeft = this.state.hintCount;
-        return `<aside class="menu"><div><a onclick="document.linkagram.getMoreHints()">${hintsLeft} ${hintsLeft === 1 ? "hint" : "hints"} remaining</a></div>${sections.join('')}</aside>`;
+        return `<aside class="menu"><div><a onclick="document.linkagram.showHintModal()">${hintsLeft} ${hintsLeft === 1 ? "hint" : "hints"} remaining</a></div>${sections.join('')}</aside>`;
     }
 
     increaseAvailableHints = (count: number) => {
@@ -417,10 +417,9 @@ export default class Linkagram {
         this.onWordListUpdated();
     }
 
-    getMoreHints = async () => {
+    showHintModal = async (event: Event | undefined) => {
         document.getElementById('hint-count')!.innerText = this.state.hintCount.toString();
-
-        this.showModal("hints-modal")(new Event("hint"));
+        this.showModal("hints-modal")(event || new Event("hint"));
 
         const onPaymentComplete = () => {
             this.increaseAvailableHints(12);
@@ -509,8 +508,7 @@ export default class Linkagram {
 
     hint = async (word: string) => {
         if (this.state.hintCount === 0) {
-            document.getElementById('hint-count')!.innerText = this.state.hintCount.toString();
-            this.showModal("hints-modal")(new Event("hint"));
+            this.showHintModal();
             return;
         }
 
