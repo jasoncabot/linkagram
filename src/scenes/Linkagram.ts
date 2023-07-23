@@ -337,7 +337,9 @@ export default class Linkagram {
                         `💡 ${hintsUsed} ${(hintsUsed == 1) ? "hint" : "hints"}`
                     ];
                     if (this.state.streak > 2) {
-                        lines.push(`🔥 ${this.state.streak}`);
+                        // add another fire for every 100 days
+                        const fires = Array(Math.floor(this.state.streak / 100) + 1).fill("🔥").join('');
+                        lines.push(`${fires} ${this.state.streak}`);
                     }
                     text = lines.join('\n');
                 }
