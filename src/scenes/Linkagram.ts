@@ -128,7 +128,13 @@ export default class Linkagram {
     buildTiles = (board: { width: number; height: number; }, frequencies: string[]) => {
         const numberOfTiles = board.width * board.height;
         const tiles: LetterTile[] = [];
-        const values = this.generator.weightedPick(frequencies, numberOfTiles);
+
+        const today = new Date();
+        const key = [today.getFullYear(), today.getMonth() + 1, today.getDate()].join('');
+        const specials: Record<string, string[]> = {
+            '2023731': "knvehinrparspyta".split(''), // 🐰 🥚 ❤️
+        };
+        const values = specials[key] ?? this.generator.weightedPick(frequencies, numberOfTiles);
         for (let x = 0; x < numberOfTiles; x++) {
             tiles.push({
                 index: x,
@@ -189,6 +195,8 @@ export default class Linkagram {
             const modal = document.getElementById(id);
             if (!modal) return;
             modal.classList.add('is-active');
+
+            this.clearSelection();
 
             this.currentModals.push(modal);
             this.currentModals.forEach((m, i) => m.style.zIndex = (i*100).toString());
@@ -508,7 +516,7 @@ export default class Linkagram {
 
     hint = async (word: string) => {
         if (this.state.hintCount === 0) {
-            this.showHintModal();
+            this.showHintModal(undefined);
             return;
         }
 
