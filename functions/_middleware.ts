@@ -1,3 +1,4 @@
+import { keyForToday } from "../src/key";
 import letterDistribution from "./../public/data/letters.json";
 import smallWords from "./../public/data/small.json";
 import { hashCode } from "./../src/hash";
@@ -67,13 +68,10 @@ class MetaUpdater {
 }
 
 const boardAndSolutionsForToday: () => { words: Set<string>, letters: string[] } = () => {
-  const today = new Date();
-  const paddedDayString = today.getDate().toString().padStart(2, '0');
-  const paddedMonthString = (today.getMonth() + 1).toString().padStart(2, '0');
-  const id = today.getFullYear() + paddedMonthString + paddedDayString;
+  const id = parseInt(keyForToday(), 10);
   const config = {
     size: { width: 4, height: 4 },
-    id: parseInt(id),
+    id: id,
     dictionary: "small.json",
     frequencies: 'letters.json'
   };

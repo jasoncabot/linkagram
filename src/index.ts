@@ -1,4 +1,5 @@
 import { hashCode } from './hash';
+import { keyForToday } from './key';
 import './sass/mystyles.scss';
 
 import Linkagram, { LinkagramConfig, LinkagramState } from './scenes/Linkagram';
@@ -9,8 +10,8 @@ const parseConfig: () => LinkagramConfig = () => {
     if (!parameters.get('id')) {
         const today = new Date();
         // a unique puzzle every day ;)
-        const id = [today.getFullYear(), today.getMonth() + 1, today.getDate()].join('');
-        parameters.set('id', id);
+        const key = keyForToday();
+        parameters.set('id', key);
     }
     if (!parameters.get('width')) {
         parameters.set('width', '4');

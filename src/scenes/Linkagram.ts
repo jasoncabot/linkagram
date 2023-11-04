@@ -1,6 +1,7 @@
 import { buildTrie, isPrefix, isWord, TrieNode } from '../trie';
 import { celebrate } from "../confetti";
 import { loadStripe, Stripe } from "@stripe/stripe-js";
+import { keyForToday } from '../key';
 
 interface LetterTile {
     index: number,
@@ -129,10 +130,10 @@ export default class Linkagram {
         const numberOfTiles = board.width * board.height;
         const tiles: LetterTile[] = [];
 
-        const today = new Date();
-        const key = [today.getFullYear(), today.getMonth() + 1, today.getDate()].join('');
+        const key = keyForToday();
         const specials: Record<string, string[]> = {
             '2023731': "knvehinrparspyta".split(''), // 🐰 🥚 ❤️
+            '20231113': "vbikeosrlptdpyah".split(''), // 🎂
         };
         const values = specials[key] ?? this.generator.weightedPick(frequencies, numberOfTiles);
         for (let x = 0; x < numberOfTiles; x++) {
@@ -581,8 +582,7 @@ export default class Linkagram {
     }
 
     onGameStarted = async () => {
-        const today = new Date();
-        const key = [today.getFullYear(), today.getMonth() + 1, today.getDate()].join('');
+        const key = keyForToday();
 
         // if we haven't played this game before
         // we don't just look at the last element as you might play different
@@ -629,8 +629,7 @@ export default class Linkagram {
     }
 
     onGameEnded = () => {
-        const today = new Date();
-        const key = [today.getFullYear(), today.getMonth() + 1, today.getDate()].join('');
+        const key = keyForToday();
 
         // if we haven't already recorded the fact we completed this game then do it now
         if (!this.state.completed.includes(key)) {
