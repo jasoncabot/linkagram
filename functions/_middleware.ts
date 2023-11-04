@@ -68,9 +68,12 @@ class MetaUpdater {
 
 const boardAndSolutionsForToday: () => { words: Set<string>, letters: string[] } = () => {
   const today = new Date();
+  const paddedDayString = today.getDate().toString().padStart(2, '0');
+  const paddedMonthString = (today.getMonth() + 1).toString().padStart(2, '0');
+  const id = today.getFullYear() + paddedMonthString + paddedDayString;
   const config = {
     size: { width: 4, height: 4 },
-    id: parseInt([today.getFullYear(), today.getMonth() + 1, today.getDate()].join(''), 10),
+    id: parseInt(id),
     dictionary: "small.json",
     frequencies: 'letters.json'
   };
