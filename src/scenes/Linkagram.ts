@@ -1,7 +1,7 @@
 import { buildTrie, isPrefix, isWord, TrieNode } from '../trie';
 import { celebrate } from "../confetti";
 import { loadStripe, Stripe } from "@stripe/stripe-js";
-import { keyForToday } from '../key';
+import { keyForDate, keyForToday } from '../key';
 
 interface LetterTile {
     index: number,
@@ -591,7 +591,7 @@ export default class Linkagram {
         if (!this.state.played.includes(key)) {
             const yesterday = new Date();
             yesterday.setDate(yesterday.getDate() - 1);
-            const yesterdaysKey = [yesterday.getFullYear(), yesterday.getMonth() + 1, yesterday.getDate()].join('');
+            const yesterdaysKey = keyForDate(yesterday);
 
             // have we ever played before?
             if (this.state.played.length == 0) {
