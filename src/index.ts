@@ -87,9 +87,9 @@ const loadState: (config: LinkagramConfig) => (LinkagramState) = (config: Linkag
         purge: () => {
             // we completed this key, so remove all temporary things stored here
             // go through local storage and remove everything that isn't an account key or for today
+            const toRemove: string[] = [];
             for (let i = 0; i < localStorage.length; i++) {
                 const oldKey = localStorage.key(i);
-                console.log(`Checking ${oldKey}`);
                 if (!oldKey) continue;
                 if (oldKey.startsWith(key)) continue;
                 if (oldKey.startsWith(accountKey("hints"))) continue;
@@ -98,7 +98,11 @@ const loadState: (config: LinkagramConfig) => (LinkagramState) = (config: Linkag
                 if (oldKey.startsWith(accountKey("streak"))) continue;
                 if (oldKey.startsWith(accountKey("maxStreak"))) continue;
                 if (oldKey.startsWith(accountKey("fixes"))) continue;
-                localStorage.removeItem(key);
+                toRemove.push(oldKey);
+            }
+            for (const oldKey of toRemove) {
+                console.log(`Removing ${oldKey}`);
+                localStorage.removeItem(oldKey);
             }
         }
     }

@@ -668,7 +668,7 @@ export default class Linkagram {
     fixupIfRequired = (key: string) => {
         // We have a bug where we don't record the streak correctly
         // Perform a one-time fix up of the streaks
-        const fixedStreaks = "streaks1";
+        const fixedStreaks = "streaks2";
         if (!this.state.fixes.has(fixedStreaks)) {
             this.state.streak = 0;
             // go through our completed state and calculate the streak and maxStreak
@@ -687,13 +687,12 @@ export default class Linkagram {
             }
 
             let current = new Date();
-            current.setDate(current.getDate() - 1);
             let idx = this.state.completed.length - 1;
-
             while (idx >= 0) {
                 const x = this.state.completed[idx];
                 const currentKeys = fixedKeysForDate(current);
-                if (!currentKeys.includes(x) && x != key) {
+                if (!currentKeys.includes(x)) {
+                    console.log(`Streak ended at ${current.toDateString()}`);
                     break;
                 }
                 calculatedStreak += 1;
