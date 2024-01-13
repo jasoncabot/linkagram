@@ -88,6 +88,7 @@ const boardAndSolutionsForToday: () => { words: Set<string>, letters: string[] }
     maxStreak: 0,
     played: [],
     streak: 0,
+    fixes: new Set<string>(),
     save: (_) => { },
     purge: () => { },
   });

@@ -43,6 +43,7 @@ interface LinkagramState {
     completed: string[]
     streak: number
     maxStreak: number
+    fixes: Set<string>
     save: (state: LinkagramState) => (void)
     purge: () => (void)
 }
@@ -584,6 +585,8 @@ export default class Linkagram {
     onGameStarted = async () => {
         const key = keyForToday();
 
+        this.fixupIfRequired(key);
+
         // if we haven't played this game before
         // we don't just look at the last element as you might play different
         // games (by modifying the URL)
@@ -660,6 +663,53 @@ export default class Linkagram {
         setState('stats-completed', this.state.completed.length);
         setState('stats-streak', this.state.streak);
         setState('stats-max-streak', this.state.maxStreak);
+    }
+
+    fixupIfRequired = (key: string) => {
+        // We have a bug where we don't record the streak correctly
+        // Perform a one-time fix up of the streaks
+        const fixedStreaks = "streaks1";
+        if (!this.state.fixes.has(fixedStreaks)) {
+            this.state.streak = 0;
+            // go through our completed state and calculate the streak and maxStreak
+
+            // iterate through completed in reverse and find the first time that
+            // a key that can be parsed as a date is not equal to the previous day
+            // then we know that the streak ended there
+            let calculatedStreak = 0;
+            const fixedKeysForDate = (date: Date) => {
+                // this was broken and fixed up before, so we check both keys just in case
+                const paddedDayString = date.getDate().toString().padStart(2, '0');
+                const paddedMonthString = (date.getMonth() + 1).toString().padStart(2, '0');
+                const current = date.getFullYear() + paddedMonthString + paddedDayString;
+                const previousBroken = parseInt([date.getFullYear(), date.getMonth() + 1, date.getDate()].join(''), 10).toString();
+                return [current, previousBroken];
+            }
+
+            let current = new Date();
+            current.setDate(current.getDate() - 1);
+            let idx = this.state.completed.length - 1;
+
+            while (idx >= 0) {
+                const x = this.state.completed[idx];
+                const currentKeys = fixedKeysForDate(current);
+                if (!currentKeys.includes(x) && x != key) {
+                    break;
+                }
+                calculatedStreak += 1;
+                idx -= 1;
+                current.setDate(current.getDate() - 1);
+            }
+
+            this.state.streak = calculatedStreak;
+            if (calculatedStreak > this.state.maxStreak) {
+                this.state.maxStreak = calculatedStreak;
+            }
+
+            // record the fact we performed this fixup
+            this.state.fixes.add(fixedStreaks);
+            this.state.save(this.state);
+        }
     }
 
     addTileToSelection = (tile: LetterTile) => {

@@ -71,6 +71,7 @@ const loadState: (config: LinkagramConfig) => (LinkagramState) = (config: Linkag
         completed: JSON.parse(localStorage.getItem(accountKey("completed")) || "[]"),
         streak: parseInt(localStorage.getItem(accountKey("streak")) || "0", 10),
         maxStreak: parseInt(localStorage.getItem(accountKey("maxStreak")) || "0", 10),
+        fixes: new Set(JSON.parse(localStorage.getItem(accountKey("fixes")) || "[]")),
         save: (state: LinkagramState) => {
             localStorage.setItem(gameKey("words"), JSON.stringify(Array.from(state.words)));
             localStorage.setItem(gameKey("hints"), serialise(state.hints));
@@ -81,9 +82,24 @@ const loadState: (config: LinkagramConfig) => (LinkagramState) = (config: Linkag
             localStorage.setItem(accountKey("completed"), JSON.stringify(state.completed));
             localStorage.setItem(accountKey("streak"), JSON.stringify(state.streak));
             localStorage.setItem(accountKey("maxStreak"), JSON.stringify(state.maxStreak));
+            localStorage.setItem(accountKey("fixes"), JSON.stringify(Array.from(state.fixes)));
         },
         purge: () => {
-            // TODO: clear up old storage
+            // we completed this key, so remove all temporary things stored here
+            // go through local storage and remove everything that isn't an account key or for today
+            for (let i = 0; i < localStorage.length; i++) {
+                const oldKey = localStorage.key(i);
+                console.log(`Checking ${oldKey}`);
+                if (!oldKey) continue;
+                if (oldKey.startsWith(key)) continue;
+                if (oldKey.startsWith(accountKey("hints"))) continue;
+                if (oldKey.startsWith(accountKey("played"))) continue;
+                if (oldKey.startsWith(accountKey("completed"))) continue;
+                if (oldKey.startsWith(accountKey("streak"))) continue;
+                if (oldKey.startsWith(accountKey("maxStreak"))) continue;
+                if (oldKey.startsWith(accountKey("fixes"))) continue;
+                localStorage.removeItem(key);
+            }
         }
     }
 }
