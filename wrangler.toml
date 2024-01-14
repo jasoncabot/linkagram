@@ -8,3 +8,6 @@ service = "linkagram-img"
 [[services]]
 binding = "PAYMENT_SERVICE"
 service = "linkagram-pay"
+
+[[analytics_engine_datasets]]
+binding = "ANALYTICS"
