@@ -135,6 +135,7 @@ export default class Linkagram {
         const specials: Record<string, string[]> = {
             '2023731': "knvehinrparspyta".split(''), // 🐰 🥚 ❤️
             '20231113': "vbikeosrlptdpyah".split(''), // 🎂
+            '20240310': "hrisetunvodgmlya".split(''), // 🤰
         };
         const values = specials[key] ?? this.generator.weightedPick(frequencies, numberOfTiles);
         for (let x = 0; x < numberOfTiles; x++) {
