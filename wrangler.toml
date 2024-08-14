@@ -11,3 +11,4 @@ service = "linkagram-pay"
 
 [[analytics_engine_datasets]]
 binding = "ANALYTICS"
+dataset = "completions"

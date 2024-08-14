@@ -1,0 +1,13 @@
+POST http://localhost:8788/stats
+Content-Type: application/json
+
+{
+    "hintsRemaining": 3,
+    "timeTaken": 1000,
+    "streak": 1,
+    "maxStreak": 1
+}
+
+### 
+
+GET http://localhost:8788/stats

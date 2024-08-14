@@ -14,3 +14,4 @@ dist
 *.pem
 pay/bin
 .wrangler
+.dev.vars

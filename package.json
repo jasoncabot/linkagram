@@ -32,7 +32,7 @@
     "vite-plugin-pwa": "^0.17.4",
     "workbox-build": "^7.0.0",
     "workbox-window": "^7.0.0",
-    "wrangler": "^3.22.4"
+    "wrangler": "^3.71.0"
   },
   "dependencies": {
     "@types/webfontloader": "^1.6.33",

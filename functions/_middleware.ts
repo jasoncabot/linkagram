@@ -2,7 +2,8 @@ import { keyForToday } from "../src/key";
 import letterDistribution from "./../public/data/letters.json";
 import smallWords from "./../public/data/small.json";
 import { hashCode } from "./../src/hash";
-import Linkagram from "./../src/scenes/Linkagram";
+import Linkagram, { LinkagramStatRequest } from "./../src/scenes/Linkagram";
+import { Request } from "@cloudflare/workers-types";
 
 export interface Env {
   IMAGE_GENERATOR: Fetcher;
@@ -10,6 +11,8 @@ export interface Env {
   PAYMENT_SERVICE_URL: string;
   ASSETS: any;
   ANALYTICS: AnalyticsEngineDataset;
+  ACCOUNT_ID: string;
+  API_TOKEN: string;
 }
 
 export async function onRequest(context: {
@@ -23,36 +26,44 @@ export async function onRequest(context: {
   // Serve up some dynamic text and data
   if (pathname === "/assets/sample.png") {
     const { letters } = boardAndSolutionsForToday();
-    return env.IMAGE_GENERATOR.fetch(request, {
+    return env.IMAGE_GENERATOR.fetch(request as any, {
       method: "POST",
       body: JSON.stringify(letters),
     });
   } else if (pathname === "/hint_payment") {
     return fetch(env.PAYMENT_SERVICE_URL, { method: request.method });
   } else if (pathname === "/stats" && request.method === "POST") {
-
     // read the hints used and time taken from the request body
-    const body = await request.json() as {
-      hintsUsed: number;
-      timeTaken: number;
-      streak: number;
-      maxStreak: number;
-    };
-    const hintsUsed = body.hintsUsed;
+    const body = (await request.json()) as LinkagramStatRequest;
+    const hintsRemaining = body.hintsRemaining;
     const timeTaken = body.timeTaken;
     const streak = body.streak;
     const maxStreak = body.maxStreak;
 
     const dataPoint: AnalyticsEngineDataPoint = {
-      blobs: [keyForToday()],
-      doubles: [hintsUsed, timeTaken, streak, maxStreak],
-      indexes: [request.cf.postalCode],
+      doubles: [hintsRemaining, timeTaken, streak, maxStreak],
+      indexes: [keyForToday()],
     };
 
     console.log("dataPoint", dataPoint);
     if (env.ANALYTICS) {
       env.ANALYTICS.writeDataPoint(dataPoint);
+      return new Response("ok", { status: 201 });
     }
+    return new Response("no-k", { status: 200 });
+  } else if (pathname === "/stats" && request.method === "GET") {
+    const query =
+      "SELECT quantileWeighted(0.50, double2, _sample_interval) as p50, quantileWeighted(0.90, double2, _sample_interval) as p90 FROM completions";
+    return fetch(
+      `https://api.cloudflare.com/client/v4/accounts/${env.ACCOUNT_ID}/analytics_engine/sql`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${env.API_TOKEN}`,
+        },
+        body: query,
+      }
+    );
   } else if (pathname === "/") {
     const { words, letters } = boardAndSolutionsForToday();
     const asset = await env.ASSETS.fetch(context.request.url);
@@ -66,7 +77,7 @@ export async function onRequest(context: {
     const assetRouteMatch = pathname.match(/assets\/([a-z]+)\.png/);
     if (assetRouteMatch?.length == 2) {
       const letters = assetRouteMatch[1].split("");
-      return env.IMAGE_GENERATOR.fetch(context.request, {
+      return env.IMAGE_GENERATOR.fetch(request as any, {
         method: "POST",
         body: JSON.stringify(letters),
       });
