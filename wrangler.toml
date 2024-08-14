@@ -12,3 +12,7 @@ service = "linkagram-pay"
 [[analytics_engine_datasets]]
 binding = "ANALYTICS"
 dataset = "completions"
+
+[vars]
+ACCOUNT_ID = "account_id"
+API_TOKEN = "api_token"
