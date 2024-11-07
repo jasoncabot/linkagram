@@ -2,7 +2,7 @@
 
 Make words by connecting letters. Each game is unique and you must find all the words.
 
-![image](https://user-images.githubusercontent.com/93598/147012844-d522e113-8372-4a1f-bffa-a2d6f1034e82.png)
+![image](docs/screenshot.jpg)
 
 
 ## Config
@@ -34,3 +34,18 @@ Typescript for the code, Bulma for the style. Pure DOM manipulation for the comp
 3. A `Trie` is built to find all words that can be made on this particular board
 4. Each complete word entered by the user is checked to see if it's valid or not, or whether it's already been discovered in this game
 
+## Interesting things
+
+### Solver
+
+There is a solver written in Python to build special grids with a known set of words.
+
+Read more about how it works [here](solver/README.md)
+
+### WASM Images
+
+There is a path that dynamically generates an image of todays board for use with social media sharing. This is done by writing an SVG file with a 'custom font' and converting to PNG with WASM before streaming the response back to the client.
+
+### Payments in a static site
+
+The game gives you a limited number of hints but you can buy more. This is done by using a simple Stripe integration. The client sends a request to a Cloudflare function to create a payment intent, and then the client uses the Stripe SDK to complete the payment and update the hint count locally. There is no way around this. Nope. None at all. Definitely don't modify the local storage value yourself.

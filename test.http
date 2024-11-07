@@ -10,4 +10,4 @@ Content-Type: application/json
 
 ### 
 
-GET http://localhost:8788/stats
+GET https://linkagram.jasoncabot.me/stats
