@@ -42,7 +42,7 @@ There is a solver written in Python to build special grids with a known set of w
 
 Read more about how it works [here](solver/README.md)
 
-### WASM Images
+### WASM Images
 
 There is a path that dynamically generates an image of todays board for use with social media sharing. This is done by writing an SVG file with a 'custom font' and converting to PNG with WASM before streaming the response back to the client.
 
