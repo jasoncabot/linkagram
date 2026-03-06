@@ -1,6 +1,5 @@
 import { hashCode } from './hash';
 import { keyForToday } from './key';
-import './sass/mystyles.scss';
 
 import Linkagram, { LinkagramConfig, LinkagramState } from './scenes/Linkagram';
 

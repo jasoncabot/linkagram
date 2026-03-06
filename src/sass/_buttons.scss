@@ -1,0 +1,116 @@
+// Icon buttons (header)
+.icon-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  color: var(--text-secondary);
+  transition: background 0.15s, color 0.15s;
+  cursor: pointer;
+
+  &:hover {
+    background: var(--glass-bg-hover);
+    color: var(--text-primary);
+  }
+
+  svg {
+    width: 18px;
+    height: 18px;
+    fill: currentColor;
+  }
+}
+
+// Action buttons (modals)
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.6rem 1.25rem;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.1s;
+  user-select: none;
+
+  &:active {
+    transform: scale(0.97);
+  }
+
+  svg {
+    width: 16px;
+    height: 16px;
+    fill: currentColor;
+  }
+}
+
+.btn-primary {
+  background: var(--glow-cyan);
+  color: #0a0a1a;
+
+  &:hover {
+    background: rgba(var(--glow-cyan-rgb), 0.85);
+  }
+}
+
+.btn-secondary {
+  background: var(--glass-bg-strong);
+  border: 1px solid var(--glass-border);
+  color: var(--text-primary);
+
+  &:hover {
+    background: var(--glass-bg-hover);
+  }
+}
+
+// Loading state
+.btn.loading {
+  position: relative;
+  color: transparent;
+  pointer-events: none;
+
+  &::after {
+    content: '';
+    position: absolute;
+    width: 18px;
+    height: 18px;
+    border: 2px solid var(--glass-border-strong);
+    border-top-color: var(--text-primary);
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+  }
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+// Fullwidth
+.btn-fullwidth {
+  width: 100%;
+  flex-grow: 1;
+}
+
+// Desktop header buttons
+@media (min-width: 768px) {
+  .icon-btn {
+    width: 42px;
+    height: 42px;
+    border-radius: 10px;
+
+    svg {
+      width: 20px;
+      height: 20px;
+    }
+  }
+
+  .app-header {
+    gap: 0.75rem;
+    padding: 0.75rem 1.25rem;
+  }
+}

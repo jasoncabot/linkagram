@@ -1,0 +1,59 @@
+.app {
+  display: grid;
+  grid-template-areas: "header" "game";
+  grid-template-rows: auto 1fr;
+  height: 100vh;
+  height: 100dvh;
+  position: relative;
+}
+
+.app-header {
+  grid-area: header;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  padding-top: calc(0.5rem + var(--safe-top));
+  z-index: 10;
+}
+
+.game-area {
+  grid-area: game;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+  padding-bottom: var(--bottom-sheet-peek);
+}
+
+// Desktop side panel layout
+@media (min-width: 768px) {
+  .app {
+    grid-template-areas: "panel header" "panel game";
+    grid-template-columns: var(--panel-width) 1fr;
+    grid-template-rows: auto 1fr;
+  }
+
+  .wordlist-panel {
+    grid-area: panel;
+    display: block;
+  }
+
+  .game-area {
+    padding-bottom: 0;
+  }
+
+  .bottom-sheet {
+    display: none !important;
+  }
+}
+
+// Mobile: hide desktop panel
+@media (max-width: 767px) {
+  .wordlist-panel {
+    display: none;
+  }
+}

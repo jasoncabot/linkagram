@@ -222,13 +222,13 @@ export default class Linkagram {
       e.preventDefault();
       const modal = document.getElementById(id);
       if (!modal) return;
-      modal.classList.add("is-active");
+      modal.classList.add("open");
 
       this.clearSelection();
 
       this.currentModals.push(modal);
       this.currentModals.forEach(
-        (m, i) => (m.style.zIndex = (i * 100).toString())
+        (m, i) => (m.style.zIndex = (50 + i * 10).toString())
       );
     };
   };
@@ -238,7 +238,7 @@ export default class Linkagram {
       e.preventDefault();
       const modal = document.getElementById(id);
       if (!modal) return;
-      modal.classList.remove("is-active");
+      modal.classList.remove("open");
       this.currentModals = this.currentModals.filter((m) => m != modal);
     };
   };
@@ -253,6 +253,9 @@ export default class Linkagram {
     const frequencies = await frequenciesResponse.json();
     this.initialise(words, frequencies);
 
+    const isMobile = window.matchMedia("(max-width: 767px)").matches;
+    const wordYOffset = isMobile ? -120 : -90;
+
     const updateTileSelection = (x: number, y: number, submit: boolean) => {
       const letter = document.elementFromPoint(x, y) as HTMLElement;
       if (letter && letter.dataset.index) {
@@ -263,7 +266,7 @@ export default class Linkagram {
       const currentWord = document.getElementById("current-word")!;
       currentWord.style.left =
         (x - currentWord.clientWidth / 2).toString() + "px";
-      currentWord.style.top = (y - 90).toString() + "px";
+      currentWord.style.top = (y + wordYOffset).toString() + "px";
       return letter;
     };
 
@@ -306,6 +309,12 @@ export default class Linkagram {
 
         // if this index is also our last
         this.onTileSelected(tile, !selectedNewLetter);
+
+        // Position the current word overlay above the tap point
+        const currentWord = document.getElementById("current-word")!;
+        currentWord.style.left =
+          (e.clientX - currentWord.clientWidth / 2).toString() + "px";
+        currentWord.style.top = (e.clientY + wordYOffset).toString() + "px";
       }
     });
 
@@ -320,8 +329,8 @@ export default class Linkagram {
       }
 
       const tableCell = document.createElement("td");
-      tableCell.classList.add("is-unselectable");
-      tableCell.innerHTML = `<div class="is-flex is-justify-content-center is-align-content-center"><a class="letter is-clickable is-uppercase">${tile.value}</a></div>`;
+      tableCell.classList.add("no-select");
+      tableCell.innerHTML = `<div class="tile-cell"><a class="letter">${tile.value}</a></div>`;
       row?.appendChild(tableCell);
 
       const letter = tableCell.children[0].children[0] as HTMLElement;
@@ -426,6 +435,75 @@ export default class Linkagram {
     this.onSelectionChanged();
     this.clearSelection();
     this.onGameStarted();
+
+    // Bottom sheet gesture handling
+    const sheet = document.getElementById("wordlist-sheet");
+    const handle = document.getElementById("bottom-sheet-handle");
+    const peek = document.getElementById("bottom-sheet-peek");
+    if (sheet && handle && peek) {
+      let startY = 0;
+      let currentY = 0;
+      let isDragging = false;
+
+      const onTouchStart = (e: TouchEvent) => {
+        startY = e.touches[0].clientY;
+        currentY = startY;
+        isDragging = true;
+        sheet.classList.add("dragging");
+      };
+
+      const onTouchMove = (e: TouchEvent) => {
+        if (!isDragging) return;
+        currentY = e.touches[0].clientY;
+        const isOpen = sheet.classList.contains("open");
+        const dy = currentY - startY;
+        if (isOpen) {
+          if (dy > 0) {
+            sheet.style.transform = `translateY(${dy}px)`;
+          }
+        } else {
+          if (dy < 0) {
+            const base = `calc(100% - var(--bottom-sheet-peek) - var(--safe-bottom))`;
+            sheet.style.transform = `translateY(calc(${base} + ${dy}px))`;
+          }
+        }
+      };
+
+      const onTouchEnd = () => {
+        if (!isDragging) return;
+        isDragging = false;
+        sheet.classList.remove("dragging");
+        sheet.style.transform = "";
+        const dy = currentY - startY;
+        if (Math.abs(dy) > 50) {
+          if (dy < 0) {
+            sheet.classList.add("open");
+          } else {
+            sheet.classList.remove("open");
+          }
+        }
+      };
+
+      handle.addEventListener("touchstart", onTouchStart, { passive: true });
+      handle.addEventListener("touchmove", onTouchMove, { passive: true });
+      handle.addEventListener("touchend", onTouchEnd);
+      peek.addEventListener("touchstart", onTouchStart, { passive: true });
+      peek.addEventListener("touchmove", onTouchMove, { passive: true });
+      peek.addEventListener("touchend", onTouchEnd);
+
+      // Tap to toggle
+      peek.addEventListener("click", () => {
+        sheet.classList.toggle("open");
+      });
+
+      // Tap outside to dismiss
+      const backdrop = document.getElementById("bottom-sheet-backdrop");
+      if (backdrop) {
+        backdrop.addEventListener("click", () => {
+          sheet.classList.remove("open");
+        });
+      }
+    }
   };
 
   onTileSelected = (tile: LetterTile | undefined, submit: boolean) => {
@@ -482,7 +560,7 @@ export default class Linkagram {
         const words = this.wordList.byLength[parseInt(length)]
           .map((word) => {
             if (this.state.words.has(word)) {
-              return `<li class="is-unselectable"><a class="is-family-monospace" onclick="document.linkagram.define('${word}')">${word}</a></li>`;
+              return `<div class="word-item no-select"><a onclick="document.linkagram.define('${word}')">${word}</a></div>`;
             } else {
               const revealedIndexes = this.state.hints.get(word) || new Set();
               const stillToGuess = Array(word.length)
@@ -491,16 +569,20 @@ export default class Linkagram {
                   revealedIndexes.has(idx) ? word.charAt(idx) : placeholder
                 )
                 .join(" ");
-              return `<li class="is-unselectable"><a class="is-family-monospace" onclick="document.linkagram.hint('${word}')">${stillToGuess}</a></li>`;
+              return `<div class="word-item no-select"><a onclick="document.linkagram.hint('${word}')">${stillToGuess}</a></div>`;
             }
           })
           .join("");
-        return `<p class="menu-label">${length} letters</p><ol class="menu-list">${words}</ol></p>`;
+        return `<div class="word-group-label">${length} letters</div><div class="word-list">${words}</div>`;
       });
     const hintsLeft = this.state.hintCount;
-    return `<aside class="menu"><div><a onclick="document.linkagram.showHintModal()">${hintsLeft} ${
-      hintsLeft === 1 ? "hint" : "hints"
-    } remaining</a></div>${sections.join("")}</aside>`;
+    const hintsLabel = hintsLeft === 1 ? "hint" : "hints";
+    const hintsBar = `<div class="hints-bar" onclick="document.linkagram.showHintModal()">` +
+      `<span class="hints-bar-icon">💡</span>` +
+      `<span class="hints-bar-text"><span class="hints-bar-count">${hintsLeft}</span> ${hintsLabel} remaining</span>` +
+      (hintsLeft <= 4 ? `<span class="hints-bar-action">Get more</span>` : '') +
+      `</div>`;
+    return `${hintsBar}${sections.join("")}`;
   };
 
   increaseAvailableHints = (count: number) => {
@@ -516,16 +598,16 @@ export default class Linkagram {
 
     const onPaymentComplete = () => {
       this.increaseAvailableHints(12);
-      document.getElementById("hints-modal")?.classList.remove("is-active");
+      document.getElementById("hints-modal")?.classList.remove("open");
     };
 
     const onPaymentError = (err: any) => {
       document
         .getElementById("payment-request-loading")
-        ?.classList.remove("is-hidden");
+        ?.classList.remove("hidden");
       document
         .getElementById("payment-request-loading")
-        ?.classList.remove("is-loading");
+        ?.classList.remove("loading");
       console.error(err);
     };
 
@@ -553,20 +635,20 @@ export default class Linkagram {
     (async () => {
       document
         .getElementById("payment-request-loading")
-        ?.classList.remove("is-hidden");
+        ?.classList.remove("hidden");
       document
         .getElementById("payment-request-loading")
-        ?.classList.add("is-loading");
+        ?.classList.add("loading");
       const result = await paymentRequest.canMakePayment();
       if (result) {
         prButton.mount("#payment-request-button");
         document
           .getElementById("payment-request-loading")
-          ?.classList.add("is-hidden");
+          ?.classList.add("hidden");
       } else {
         document
           .getElementById("payment-request-button")
-          ?.classList.add("is-hidden");
+          ?.classList.add("hidden");
       }
     })();
 
@@ -674,6 +756,12 @@ export default class Linkagram {
     wordlist.innerHTML = this.wordListAsHTML();
     const wordlistModal = document.getElementById("wordlist-modal-content")!;
     wordlistModal.innerHTML = wordlist.innerHTML;
+
+    // Update mobile bottom sheet
+    const totalFoundMobile = document.getElementById("total-found-mobile");
+    if (totalFoundMobile) totalFoundMobile.innerText = `${found} / ${total}`;
+    const sheetContent = document.getElementById("wordlist-sheet-content");
+    if (sheetContent) sheetContent.innerHTML = wordlist.innerHTML;
 
     if (found === total) {
       this.onGameEnded();
@@ -843,32 +931,31 @@ export default class Linkagram {
     this.selectedIndexes.push(tile.index);
 
     if (previous) {
-      // draw an arrow linking previous to next
+      // draw a line linking previous to next
       const svg = document.getElementById("connections")!;
+      const svgRect = svg.getBoundingClientRect();
+
+      const prevRect = previous.getBoundingClientRect();
+      const nextRect = next.getBoundingClientRect();
+
+      // Use percentage-based coordinates relative to the SVG element
+      const x1 = ((prevRect.x + prevRect.width / 2 - svgRect.x) / svgRect.width) * 100;
+      const y1 = ((prevRect.y + prevRect.height / 2 - svgRect.y) / svgRect.height) * 100;
+      const x2 = ((nextRect.x + nextRect.width / 2 - svgRect.x) / svgRect.width) * 100;
+      const y2 = ((nextRect.y + nextRect.height / 2 - svgRect.y) / svgRect.height) * 100;
+
       let arrow = document.createElementNS(
         "http://www.w3.org/2000/svg",
         "line"
       );
       arrow.classList.add("connection");
-      const x1 =
-        previous.getBoundingClientRect().x +
-        previous.getBoundingClientRect().width / 2;
-      const x2 =
-        next.getBoundingClientRect().x +
-        previous.getBoundingClientRect().width / 2;
-      const y1 =
-        previous.getBoundingClientRect().y +
-        previous.getBoundingClientRect().height / 2;
-      const y2 =
-        next.getBoundingClientRect().y +
-        previous.getBoundingClientRect().height / 2;
-      arrow.setAttribute("stroke", "hsl(171, 100%, 41%)");
-      arrow.setAttribute("stroke-width", "6px");
-      arrow.setAttribute("x1", (x1 / svg.clientWidth) * 100 + "%");
-      arrow.setAttribute("y1", (y1 / svg.clientHeight) * 100 + "%");
-      arrow.setAttribute("x2", (x2 / svg.clientWidth) * 100 + "%");
-      arrow.setAttribute("y2", (y2 / svg.clientHeight) * 100 + "%");
-      svg?.appendChild(arrow);
+      const segmentIndex = this.selectedIndexes.length - 2;
+      arrow.setAttribute("data-segment", segmentIndex.toString());
+      arrow.setAttribute("x1", x1 + "%");
+      arrow.setAttribute("y1", y1 + "%");
+      arrow.setAttribute("x2", x2 + "%");
+      arrow.setAttribute("y2", y2 + "%");
+      svg.appendChild(arrow);
     }
 
     // highlight every letter touching this last one
@@ -882,8 +969,8 @@ export default class Linkagram {
   };
 
   clearSelection = () => {
-    const svg = document.getElementById("connections");
-    svg!.innerHTML = ``;
+    const svg = document.getElementById("connections")!;
+    svg.querySelectorAll(".connection").forEach((el) => el.remove());
     this.selectedIndexes = [];
     this.highlightedIndexes.clear();
     const currentWord = document.getElementById("current-word")!;
@@ -893,6 +980,16 @@ export default class Linkagram {
   };
 
   onSelectionChanged = () => {
+    // Toggle has-selection class on board for dimming non-highlighted tiles
+    const board = document.getElementById("board");
+    if (board) {
+      if (this.selectedIndexes.length > 0) {
+        board.classList.add("has-selection");
+      } else {
+        board.classList.remove("has-selection");
+      }
+    }
+
     // go through each letter
     // make sure it's in the right state based on the selectedIndexes, highlightedIndexes
     this.letterButtons.forEach((button, idx) => {

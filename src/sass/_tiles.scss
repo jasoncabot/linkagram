@@ -1,0 +1,189 @@
+#board {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-grow: 2;
+  width: 100%;
+  position: relative;
+  z-index: 1;
+}
+
+#board table {
+  border-spacing: var(--tile-gap);
+}
+
+#board td {
+  padding: var(--tile-gap);
+}
+
+.tile-cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.letter {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--tile-size);
+  height: var(--tile-size);
+  border-radius: var(--tile-radius);
+  background: var(--glass-bg);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border: 1px solid var(--glass-border);
+  color: var(--text-primary);
+  font-family: var(--font-display);
+  font-size: var(--tile-font-size);
+  font-weight: 700;
+  text-transform: uppercase;
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: manipulation;
+  will-change: transform, box-shadow;
+  transition: transform 0.15s var(--ease-spring),
+              box-shadow 0.15s var(--ease-out-expo),
+              border-color 0.15s var(--ease-out-expo),
+              opacity 0.15s var(--ease-out-expo);
+}
+
+.letter.selected {
+  border-color: var(--glow-cyan);
+  box-shadow: 0 0 10px rgba(var(--glow-cyan-rgb), 0.3);
+  transform: scale(1.03);
+}
+
+.letter.highlighted {
+  border-color: var(--glass-border-strong);
+}
+
+// Dim non-highlighted tiles when selection active
+.has-selection .letter:not(.selected):not(.highlighted) {
+  opacity: 0.4;
+}
+
+// Flash states
+.letter.valid {
+  border-color: var(--glow-green);
+  box-shadow: 0 0 12px rgba(var(--glow-green-rgb), 0.35);
+  animation: pulse-valid 300ms var(--ease-out-expo);
+}
+
+.letter.invalid {
+  border-color: var(--glow-red);
+  box-shadow: 0 0 12px rgba(var(--glow-red-rgb), 0.35);
+  animation: shake 300ms var(--ease-out-expo);
+}
+
+.letter.found {
+  border-color: var(--glow-yellow);
+  box-shadow: 0 0 12px rgba(var(--glow-yellow-rgb), 0.35);
+}
+
+@keyframes pulse-valid {
+  0% { transform: scale(1); }
+  40% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-2px); }
+  40% { transform: translateX(2px); }
+  60% { transform: translateX(-2px); }
+  80% { transform: translateX(1px); }
+}
+
+@media (hover: hover) {
+  .letter:hover {
+    background: var(--glass-bg-hover);
+    border-color: var(--glass-border-strong);
+  }
+}
+
+// Total found display
+#total-found {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  color: var(--text-secondary);
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+  padding: 0.75rem 1.5rem;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: 999px;
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  margin-top: 0.5rem;
+  flex-shrink: 0;
+  transition: background 0.15s;
+
+  &:hover {
+    background: var(--glass-bg-hover);
+  }
+}
+
+@media (max-width: 767px) {
+  #total-found {
+    font-size: 1.5rem;
+    padding: 0.5rem 1.25rem;
+  }
+}
+
+// Current word pill
+#current-word {
+  min-height: 3rem;
+  pointer-events: none;
+  padding: 0.5rem 1.5rem;
+  text-transform: uppercase;
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-align: center;
+  flex-shrink: 0;
+  color: var(--glow-cyan);
+  text-shadow: 0 0 20px rgba(var(--glow-cyan-rgb), 0.3);
+  background: var(--glass-bg);
+  border: 1px solid transparent;
+  border-radius: 999px;
+  margin-bottom: 0.5rem;
+  opacity: 0;
+  transition: opacity 0.15s var(--ease-out-expo),
+              border-color 0.15s var(--ease-out-expo);
+}
+
+#current-word.has-word {
+  opacity: 1;
+  border-color: var(--glass-border);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+}
+
+@media (min-width: 768px) {
+  #current-word {
+    margin-bottom: 1.5rem;
+  }
+}
+
+@media (max-width: 767px) {
+  #current-word {
+    position: absolute;
+    z-index: 10;
+    background: rgba(10, 10, 26, 0.85);
+    border: 1px solid var(--glass-border-strong);
+    text-shadow: 0 0 10px rgba(var(--glow-cyan-rgb), 0.5);
+  }
+
+  #current-word.has-word {
+    opacity: 1;
+  }
+}
