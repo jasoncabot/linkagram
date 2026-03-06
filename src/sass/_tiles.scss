@@ -59,8 +59,26 @@
   border-color: var(--glass-border-strong);
 }
 
+// Candidate tiles (keyboard input with multiple possible matches)
+.letter.candidate {
+  border-color: var(--glow-yellow);
+  box-shadow: 0 0 12px rgba(var(--glow-yellow-rgb), 0.4);
+  animation: pulse-candidate 1s ease-in-out infinite;
+}
+
+@keyframes pulse-candidate {
+  0%, 100% {
+    box-shadow: 0 0 8px rgba(var(--glow-yellow-rgb), 0.3);
+    transform: scale(1);
+  }
+  50% {
+    box-shadow: 0 0 16px rgba(var(--glow-yellow-rgb), 0.5);
+    transform: scale(1.02);
+  }
+}
+
 // Dim non-highlighted tiles when selection active
-.has-selection .letter:not(.selected):not(.highlighted) {
+.has-selection .letter:not(.selected):not(.highlighted):not(.candidate) {
   opacity: 0.4;
 }
 

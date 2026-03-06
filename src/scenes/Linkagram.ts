@@ -78,6 +78,10 @@ export default class Linkagram {
   state: LinkagramState;
   stripe: Stripe | null;
   currentModals: HTMLElement[];
+  
+  // Keyboard input state
+  keyboardPaths: number[][] = [];  // All possible paths being typed
+  keyboardWord: string = '';  // The word being typed
 
   constructor(data: LinkagramConfig, state: LinkagramState) {
     this.selectedIndexes = [];
@@ -276,6 +280,10 @@ export default class Linkagram {
     let selectedNewLetter = true;
     board.addEventListener("pointerdown", (e: PointerEvent) => {
       e.preventDefault();
+      // Clear any keyboard selection when using pointer input
+      if (this.keyboardWord.length > 0) {
+        this.clearKeyboardSelection();
+      }
       const letter = document.elementFromPoint(
         e.clientX,
         e.clientY
@@ -435,6 +443,9 @@ export default class Linkagram {
     this.onSelectionChanged();
     this.clearSelection();
     this.onGameStarted();
+
+    // Keyboard event listener for desktop
+    document.addEventListener('keydown', this.handleKeyDown);
 
     // Bottom sheet gesture handling
     const sheet = document.getElementById("wordlist-sheet");
@@ -1050,6 +1061,264 @@ export default class Linkagram {
     }
 
     return allWords;
+  };
+
+  // Keyboard input methods
+  handleKeyDown = (e: KeyboardEvent) => {
+    // Ignore if a modal is open or if focus is on an input
+    if (this.currentModals.length > 0) return;
+    if (document.activeElement?.tagName === 'INPUT') return;
+    if (document.activeElement?.tagName === 'TEXTAREA') return;
+
+    const key = e.key.toLowerCase();
+
+    if (key === 'enter') {
+      this.submitKeyboardWord();
+      e.preventDefault();
+      return;
+    }
+
+    if (key === 'backspace') {
+      this.keyboardBackspace();
+      e.preventDefault();
+      return;
+    }
+
+    if (key === 'escape') {
+      this.clearKeyboardSelection();
+      e.preventDefault();
+      return;
+    }
+
+    // Only handle single letter keys
+    if (key.length !== 1 || !key.match(/[a-z]/i)) return;
+
+    this.handleKeyboardLetter(key);
+    e.preventDefault();
+  };
+
+  handleKeyboardLetter = (letter: string) => {
+    // Clear any touch/click selection when starting keyboard input
+    if (this.keyboardWord === '' && this.selectedIndexes.length > 0) {
+      this.clearSelection();
+    }
+
+    if (this.keyboardPaths.length === 0) {
+      // Starting fresh - find all tiles with this letter
+      const matchingIndexes = this.tiles
+        .filter(t => t.value === letter)
+        .map(t => t.index);
+
+      if (matchingIndexes.length === 0) {
+        // No such letter on board - flash error
+        this.flashButtons(this.letterButtons, FlashState.Invalid);
+        return;
+      }
+
+      this.keyboardPaths = matchingIndexes.map(i => [i]);
+    } else {
+      // Extend existing paths
+      const newPaths: number[][] = [];
+
+      for (const path of this.keyboardPaths) {
+        const lastIndex = path[path.length - 1];
+        const lastTile = this.tiles[lastIndex];
+
+        // Find adjacent tiles with this letter that aren't already in the path
+        const adjacentMatches = lastTile.links
+          .filter(t => t.value === letter && !path.includes(t.index))
+          .map(t => t.index);
+
+        for (const nextIndex of adjacentMatches) {
+          newPaths.push([...path, nextIndex]);
+        }
+      }
+
+      if (newPaths.length === 0) {
+        // No valid continuation - flash the last candidates
+        const lastCandidates = this.getLastCandidates();
+        const buttons = lastCandidates.map(i => this.letterButtons[i]);
+        this.flashButtons(buttons, FlashState.Invalid);
+        return;
+      }
+
+      this.keyboardPaths = newPaths;
+    }
+
+    this.keyboardWord += letter;
+    this.updateKeyboardVisualization();
+  };
+
+  keyboardBackspace = () => {
+    if (this.keyboardWord === '') return;
+
+    this.keyboardWord = this.keyboardWord.slice(0, -1);
+
+    if (this.keyboardWord === '') {
+      this.keyboardPaths = [];
+    } else {
+      // Remove last element from each path and deduplicate
+      this.keyboardPaths = this.keyboardPaths.map(p => p.slice(0, -1));
+      this.keyboardPaths = this.deduplicatePaths(this.keyboardPaths);
+    }
+
+    this.updateKeyboardVisualization();
+  };
+
+  deduplicatePaths = (paths: number[][]): number[][] => {
+    const seen = new Set<string>();
+    return paths.filter(p => {
+      const key = p.join(',');
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+  };
+
+  getLastCandidates = (): number[] => {
+    if (this.keyboardPaths.length === 0) return [];
+    const lastPosition = this.keyboardWord.length - 1;
+    const candidates = new Set<number>();
+    for (const path of this.keyboardPaths) {
+      if (path[lastPosition] !== undefined) {
+        candidates.add(path[lastPosition]);
+      }
+    }
+    return [...candidates];
+  };
+
+  submitKeyboardWord = () => {
+    if (this.keyboardPaths.length === 0) return;
+
+    // Use the first path (all paths spell the same word)
+    const path = this.keyboardPaths[0];
+
+    // Set selectedIndexes to this path and submit
+    this.selectedIndexes = [...path];
+    this.submitWord();
+    this.clearKeyboardSelection();
+  };
+
+  clearKeyboardSelection = () => {
+    this.keyboardPaths = [];
+    this.keyboardWord = '';
+    this.updateKeyboardVisualization();
+    this.clearSelection();
+  };
+
+  updateKeyboardVisualization = () => {
+    // Clear old connection lines
+    const svg = document.getElementById("connections")!;
+    svg.querySelectorAll(".connection").forEach((el) => el.remove());
+
+    // Update current word display
+    const currentWord = document.getElementById("current-word")!;
+    currentWord.innerText = this.keyboardWord;
+    if (this.keyboardWord) {
+      currentWord.classList.add("has-word");
+      // Position it at top center of board
+      const board = document.getElementById("board");
+      if (board) {
+        const boardRect = board.getBoundingClientRect();
+        currentWord.style.left = (boardRect.left + boardRect.width / 2 - currentWord.clientWidth / 2) + "px";
+        currentWord.style.top = (boardRect.top - 50) + "px";
+      }
+    } else {
+      currentWord.classList.remove("has-word");
+    }
+
+    // Determine which tiles are definite vs candidates at each position
+    const confirmedAtPosition: (number | null)[] = [];
+    const candidatesAtPosition: Set<number>[] = [];
+
+    const wordLength = this.keyboardWord.length;
+    for (let pos = 0; pos < wordLength; pos++) {
+      const indexesAtPos = new Set(this.keyboardPaths.map(p => p[pos]));
+      candidatesAtPosition[pos] = indexesAtPos;
+      if (indexesAtPos.size === 1) {
+        confirmedAtPosition[pos] = [...indexesAtPos][0];
+      } else {
+        confirmedAtPosition[pos] = null;
+      }
+    }
+
+    // Update tile CSS classes
+    this.letterButtons.forEach((button) => {
+      button.classList.remove("selected", "highlighted", "candidate");
+    });
+
+    // Collect all tiles in any path for highlighting
+    const tilesInPaths = new Set<number>();
+    for (const path of this.keyboardPaths) {
+      for (const idx of path) {
+        tilesInPaths.add(idx);
+      }
+    }
+
+    // Apply selected and candidate classes
+    for (let pos = 0; pos < wordLength; pos++) {
+      if (confirmedAtPosition[pos] !== null) {
+        this.letterButtons[confirmedAtPosition[pos]!].classList.add("selected");
+      } else {
+        for (const candidateIdx of candidatesAtPosition[pos]) {
+          this.letterButtons[candidateIdx].classList.add("candidate");
+        }
+      }
+    }
+
+    // Draw connection lines between confirmed tiles
+    const confirmed = confirmedAtPosition.filter(c => c !== null) as number[];
+    for (let i = 1; i < confirmed.length; i++) {
+      this.drawConnectionBetween(confirmed[i - 1], confirmed[i], i - 1);
+    }
+
+    // Handle "has-selection" class on board
+    const board = document.getElementById("board");
+    if (board) {
+      if (this.keyboardWord.length > 0) {
+        board.classList.add("has-selection");
+      } else {
+        board.classList.remove("has-selection");
+      }
+    }
+
+    // Update highlighted indexes for dimming (don't dim tiles in paths or adjacent to last candidates)
+    this.highlightedIndexes.clear();
+    for (const idx of tilesInPaths) {
+      this.highlightedIndexes.add(idx);
+    }
+    // Also highlight tiles adjacent to last candidates
+    const lastCandidates = candidatesAtPosition[wordLength - 1] || new Set();
+    for (const candidateIdx of lastCandidates) {
+      const tile = this.tiles[candidateIdx];
+      for (const link of tile.links) {
+        this.highlightedIndexes.add(link.index);
+      }
+    }
+
+    this.onSelectionChanged();
+  };
+
+  drawConnectionBetween = (fromIdx: number, toIdx: number, segmentIndex: number) => {
+    const svg = document.getElementById("connections")!;
+    const svgRect = svg.getBoundingClientRect();
+
+    const prevRect = this.letterButtons[fromIdx].getBoundingClientRect();
+    const nextRect = this.letterButtons[toIdx].getBoundingClientRect();
+
+    const x1 = ((prevRect.x + prevRect.width / 2 - svgRect.x) / svgRect.width) * 100;
+    const y1 = ((prevRect.y + prevRect.height / 2 - svgRect.y) / svgRect.height) * 100;
+    const x2 = ((nextRect.x + nextRect.width / 2 - svgRect.x) / svgRect.width) * 100;
+    const y2 = ((nextRect.y + nextRect.height / 2 - svgRect.y) / svgRect.height) * 100;
+
+    const arrow = document.createElementNS("http://www.w3.org/2000/svg", "line");
+    arrow.classList.add("connection");
+    arrow.setAttribute("data-segment", segmentIndex.toString());
+    arrow.setAttribute("x1", x1 + "%");
+    arrow.setAttribute("y1", y1 + "%");
+    arrow.setAttribute("x2", x2 + "%");
+    arrow.setAttribute("y2", y2 + "%");
+    svg.appendChild(arrow);
   };
 }
 
