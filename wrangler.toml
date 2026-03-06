@@ -1,5 +1,6 @@
 name = "linkagram"
 compatibility_date = "2022-12-24"
+pages_build_output_dir = "dist"
 
 [[services]]
 binding = "IMAGE_GENERATOR"
