@@ -23,7 +23,7 @@ jobs:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           workingDirectory: 'worker'
-          command: publish
+          command: deploy
       - run: yarn
         working-directory: pay
       - name: Publish Payment Worker
@@ -32,7 +32,7 @@ jobs:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           workingDirectory: 'pay'
-          command: publish
+          command: deploy
       - run: yarn
       - run: yarn build
       - name: Publish Pages
@@ -40,6 +40,6 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages publish --project-name=$SITE dist
+          command: pages deploy --project-name=$SITE dist
         env:
           SITE: linkagram
