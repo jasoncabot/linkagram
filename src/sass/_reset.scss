@@ -18,6 +18,8 @@ html, body {
   color: var(--text-primary);
   background: var(--bg-gradient);
   background-attachment: fixed;
+  user-select: none;
+  -webkit-user-select: none;
 }
 
 body {

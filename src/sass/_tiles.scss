@@ -150,6 +150,10 @@
 }
 
 @media (max-width: 767px) {
+  .letter {
+    font-size: clamp(1.5rem, 7vw, 2.5rem);
+  }
+
   #total-found {
     font-size: 1.5rem;
     padding: 0.5rem 1.25rem;
@@ -170,18 +174,17 @@
   flex-shrink: 0;
   color: var(--glow-cyan);
   text-shadow: 0 0 20px rgba(var(--glow-cyan-rgb), 0.3);
-  background: var(--glass-bg);
+  background: transparent;
   border: 1px solid transparent;
   border-radius: 999px;
   margin-bottom: 0.5rem;
-  opacity: 0;
-  transition: opacity 0.15s var(--ease-out-expo),
-              border-color 0.15s var(--ease-out-expo);
+  display: none;
 }
 
 #current-word.has-word {
-  opacity: 1;
+  display: block;
   border-color: var(--glass-border);
+  background: var(--glass-bg);
   backdrop-filter: blur(var(--glass-blur));
   -webkit-backdrop-filter: blur(var(--glass-blur));
 }
@@ -196,12 +199,73 @@
   #current-word {
     position: absolute;
     z-index: 10;
-    background: rgba(10, 10, 26, 0.85);
-    border: 1px solid var(--glass-border-strong);
-    text-shadow: 0 0 10px rgba(var(--glow-cyan-rgb), 0.5);
   }
 
   #current-word.has-word {
-    opacity: 1;
+    background: rgba(10, 10, 26, 0.6);
+    backdrop-filter: blur(var(--glass-blur));
+    -webkit-backdrop-filter: blur(var(--glass-blur));
+    border-color: var(--glass-border-strong);
+    text-shadow: 0 0 10px rgba(var(--glow-cyan-rgb), 0.5);
+  }
+}
+
+// Total found flash animation on valid word
+#total-found.flash-valid,
+.bottom-sheet-peek:has(#total-found-mobile.flash-valid) {
+  animation: total-found-pulse 500ms var(--ease-out-expo);
+}
+
+#total-found-mobile.flash-valid {
+  color: var(--glow-green);
+  animation: total-found-text-pulse 500ms var(--ease-out-expo);
+}
+
+@keyframes total-found-pulse {
+  0% { transform: scale(1); }
+  30% { transform: scale(1.12); }
+  100% { transform: scale(1); }
+}
+
+@keyframes total-found-text-pulse {
+  0% { color: var(--text-primary); }
+  30% { color: var(--glow-green); }
+  100% { color: var(--text-primary); }
+}
+
+// Landscape mode: scale down the board to fit without scrolling
+@media (orientation: landscape) and (max-height: 500px) {
+  .game-area {
+    padding-bottom: 0;
+    justify-content: center;
+    overflow: hidden;
+  }
+
+  #board {
+    flex-grow: 0;
+  }
+
+  #board table {
+    border-spacing: clamp(0.1rem, 0.8vh, 0.35rem);
+  }
+
+  #board td {
+    padding: clamp(0.1rem, 0.8vh, 0.35rem);
+  }
+
+  .letter {
+    width: clamp(1.8rem, 11vh, 3rem);
+    height: clamp(1.8rem, 11vh, 3rem);
+    font-size: clamp(0.8rem, 5vh, 1.4rem);
+  }
+
+  #total-found {
+    font-size: 0.9rem;
+    padding: 0.2rem 0.6rem;
+    margin-top: 0;
+  }
+
+  #current-word {
+    display: none;
   }
 }

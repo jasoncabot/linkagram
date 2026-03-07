@@ -258,7 +258,7 @@ export default class Linkagram {
     this.initialise(words, frequencies);
 
     const isMobile = window.matchMedia("(max-width: 767px)").matches;
-    const wordYOffset = isMobile ? -120 : -90;
+    const wordYOffset = isMobile ? -150 : -90;
 
     const updateTileSelection = (x: number, y: number, submit: boolean) => {
       const letter = document.elementFromPoint(x, y) as HTMLElement;
@@ -324,6 +324,9 @@ export default class Linkagram {
           (e.clientX - currentWord.clientWidth / 2).toString() + "px";
         currentWord.style.top = (e.clientY + wordYOffset).toString() + "px";
       }
+    });
+    board.addEventListener("pointercancel", () => {
+      this.clearSelection();
     });
 
     this.letterButtons = this.tiles.map((tile) => {
@@ -557,6 +560,7 @@ export default class Linkagram {
       this.onWordRevealed(word);
       this.state.save(this.state);
       this.flashButtons(buttons, FlashState.Valid);
+      this.flashTotalFound();
       this.onWordListUpdated();
     } else {
       this.flashButtons(buttons, FlashState.Invalid);
@@ -756,6 +760,21 @@ export default class Linkagram {
     setTimeout(() => {
       buttons.forEach((button) => button.classList.remove(state.valueOf()));
     }, 250);
+  };
+
+  flashTotalFound = () => {
+    const totalFound = document.getElementById("total-found");
+    const totalFoundMobile = document.getElementById("total-found-mobile");
+    const elements = [totalFound, totalFoundMobile].filter(Boolean) as HTMLElement[];
+    elements.forEach((el) => {
+      el.classList.remove("flash-valid");
+      // Force reflow to restart animation
+      void el.offsetWidth;
+      el.classList.add("flash-valid");
+    });
+    setTimeout(() => {
+      elements.forEach((el) => el.classList.remove("flash-valid"));
+    }, 500);
   };
 
   onWordListUpdated = () => {
@@ -987,6 +1006,8 @@ export default class Linkagram {
     const currentWord = document.getElementById("current-word")!;
     currentWord.innerText = "";
     currentWord.classList.remove("has-word");
+    currentWord.style.left = "";
+    currentWord.style.top = "";
     this.onSelectionChanged();
   };
 
