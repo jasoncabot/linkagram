@@ -33,6 +33,9 @@ const createPaymentIntent = async (request: Request, env: Env) => {
 		const paymentIntent = await stripe.paymentIntents.create({
 			amount: 99,
 			currency: 'gbp',
+			automatic_payment_methods: {
+				enabled: true,
+			},
 		});
 
 		return new Response(JSON.stringify({
