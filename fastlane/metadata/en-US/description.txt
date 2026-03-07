@@ -1,0 +1,10 @@
+Linkagram is a daily word puzzle. Find all the words hidden in a 4x4 grid of letters by swiping to connect adjacent tiles. Each letter can only be used once per word.
+
+A new puzzle is available every day. Track your streak and challenge yourself to find every word. Use hints when you get stuck.
+
+Features:
+- New puzzle every day
+- Swipe to connect letters and form words
+- Track your daily streak
+- Use hints to reveal tricky words
+- Works fully offline

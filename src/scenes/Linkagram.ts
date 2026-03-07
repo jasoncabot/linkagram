@@ -1,7 +1,9 @@
 import { buildTrie, isPrefix, isWord, TrieNode } from "../trie";
 import { celebrate } from "../confetti";
-import { loadStripe, Stripe } from "@stripe/stripe-js";
 import { keyForDate, keyForToday } from "../key";
+import { isNative } from "../platform";
+import type { PaymentProvider } from "../payment/PaymentProvider";
+import { Share } from "@capacitor/share";
 
 export interface LinkagramStatRequest {
   hintsRemaining: number;
@@ -76,7 +78,7 @@ export default class Linkagram {
   config: LinkagramConfig;
   wordListPopup: any | undefined;
   state: LinkagramState;
-  stripe: Stripe | null;
+  paymentProvider: PaymentProvider | null;
   currentModals: HTMLElement[];
   
   // Keyboard input state
@@ -94,7 +96,7 @@ export default class Linkagram {
     };
     this.state = state;
     this.config = data;
-    this.stripe = null;
+    this.paymentProvider = null;
     this.currentModals = [];
 
     const prng = buildMulberry32(state.seed);
@@ -257,8 +259,13 @@ export default class Linkagram {
     const frequencies = await frequenciesResponse.json();
     this.initialise(words, frequencies);
 
-    const isMobile = window.matchMedia("(max-width: 767px)").matches;
-    const wordYOffset = isMobile ? -150 : -90;
+    const isMobile = window.matchMedia("(max-width: 767px)").matches || isNative();
+    const wordYOffset = isNative() ? -90 : (isMobile ? -150 : -90);
+
+    if (isNative()) {
+      const currentWord = document.getElementById("current-word")!;
+      currentWord.style.position = "fixed";
+    }
 
     const updateTileSelection = (x: number, y: number, submit: boolean) => {
       const letter = document.elementFromPoint(x, y) as HTMLElement;
@@ -354,15 +361,9 @@ export default class Linkagram {
       .getElementById("total-found")
       ?.addEventListener("click", this.showModal("wordlist-modal"));
     document
-      .getElementById("wordlist-modal-close")
-      ?.addEventListener("click", this.hideModal("wordlist-modal"));
-    document
       .getElementById("wordlist-modal-background")
       ?.addEventListener("click", this.hideModal("wordlist-modal"));
 
-    document
-      .getElementById("hints-modal-close")
-      ?.addEventListener("click", this.hideModal("hints-modal"));
     document
       .getElementById("hints-modal-background")
       ?.addEventListener("click", this.hideModal("hints-modal"));
@@ -375,9 +376,6 @@ export default class Linkagram {
       .getElementById("how-to-play-button")
       ?.addEventListener("click", this.showModal("how-to-play-modal"));
     document
-      .getElementById("how-to-play-modal-close")
-      ?.addEventListener("click", this.hideModal("how-to-play-modal"));
-    document
       .getElementById("how-to-play-modal-close-ok")
       ?.addEventListener("click", this.hideModal("how-to-play-modal"));
     document
@@ -388,9 +386,6 @@ export default class Linkagram {
       .getElementById("stats-button")
       ?.addEventListener("click", this.showModal("stats-modal"));
     document
-      .getElementById("stats-modal-close")
-      ?.addEventListener("click", this.hideModal("stats-modal"));
-    document
       .getElementById("stats-modal-background")
       ?.addEventListener("click", this.hideModal("stats-modal"));
 
@@ -398,8 +393,6 @@ export default class Linkagram {
       .getElementById("share-button")
       ?.addEventListener("click", async () => {
         try {
-          if (!navigator.share) return;
-
           // if you've completed it
           let text = `Found ${this.state.words.size} / ${this.wordList.words.size}`;
           if (this.state.words.size === this.wordList.words.size) {
@@ -432,11 +425,27 @@ export default class Linkagram {
             text = lines.join("\n");
           }
 
-          await navigator.share({
-            title: "Linkagram",
-            text: text,
-            url: document.URL,
-          });
+          const shareUrl = isNative()
+            ? "https://apps.apple.com/app/linkagram/id882340053"
+            : document.URL;
+
+          if (isNative()) {
+            await Share.share({
+              title: "Linkagram",
+              text: text,
+              url: shareUrl,
+              dialogTitle: "Share your results",
+            });
+          } else if (navigator.share) {
+            await navigator.share({
+              title: "Linkagram",
+              text: text,
+              url: shareUrl,
+            });
+          } else {
+            await navigator.clipboard.writeText(`${text}\n${shareUrl}`);
+            alert("Results copied to clipboard!");
+          }
         } catch (error) {
           console.warn(error);
         }
@@ -611,101 +620,14 @@ export default class Linkagram {
       this.state.hintCount.toString();
     this.showModal("hints-modal")(event || new Event("hint"));
 
-    const onPaymentComplete = () => {
+    if (!this.paymentProvider) return;
+
+    const { success } = await this.paymentProvider.requestPayment(
+      document.getElementById("get-hints-pay") || undefined
+    );
+    if (success) {
       this.increaseAvailableHints(12);
       document.getElementById("hints-modal")?.classList.remove("open");
-    };
-
-    const onPaymentError = (err: any) => {
-      document
-        .getElementById("payment-request-loading")
-        ?.classList.remove("hidden");
-      document
-        .getElementById("payment-request-loading")
-        ?.classList.remove("loading");
-      console.error(err);
-    };
-
-    if (!this.stripe) {
-      onPaymentError(new Error("unable to load stripe"));
-      return;
-    }
-
-    const stripe = this.stripe;
-
-    const paymentRequest = stripe.paymentRequest({
-      country: "GB",
-      currency: "gbp",
-      total: {
-        label: "12 linkagram hints",
-        amount: 99,
-      },
-    });
-
-    const elements = stripe.elements();
-    const prButton = elements.create("paymentRequestButton", {
-      paymentRequest,
-    });
-
-    (async () => {
-      document
-        .getElementById("payment-request-loading")
-        ?.classList.remove("hidden");
-      document
-        .getElementById("payment-request-loading")
-        ?.classList.add("loading");
-      const result = await paymentRequest.canMakePayment();
-      if (result) {
-        prButton.mount("#payment-request-button");
-        document
-          .getElementById("payment-request-loading")
-          ?.classList.add("hidden");
-      } else {
-        document
-          .getElementById("payment-request-button")
-          ?.classList.add("hidden");
-      }
-    })();
-
-    try {
-      const response = await fetch(`/hint_payment`, {
-        method: "POST",
-        headers: {
-          "content-type": "application/json;charset=UTF-8",
-        },
-      });
-      const clientSecretResponse = await response.json();
-      const clientSecret = clientSecretResponse.secret;
-
-      paymentRequest.on("paymentmethod", async (ev) => {
-        try {
-          const { paymentIntent, error: confirmError } =
-            await stripe.confirmCardPayment(
-              clientSecret,
-              { payment_method: ev.paymentMethod.id },
-              { handleActions: false }
-            );
-
-          if (confirmError) {
-            ev.complete("fail");
-          } else {
-            ev.complete("success");
-            if (paymentIntent.status === "requires_action") {
-              const { error } = await stripe.confirmCardPayment(clientSecret);
-              if (!error) {
-              } else {
-                onPaymentComplete();
-              }
-            } else {
-              onPaymentComplete();
-            }
-          }
-        } catch (err) {
-          onPaymentError(err);
-        }
-      });
-    } catch (err) {
-      onPaymentError(err);
     }
   };
 
@@ -735,6 +657,18 @@ export default class Linkagram {
   };
 
   define = async (word: string) => {
+    const cacheKey = `def:${word}`;
+    const cached = localStorage.getItem(cacheKey);
+    if (cached) {
+      alert(word + "\n\n" + cached);
+      return;
+    }
+
+    if (!navigator.onLine) {
+      alert(word + "\n\n" + "(Definition available when online)");
+      return;
+    }
+
     try {
       const result = await fetch(
         `https://api.dictionaryapi.dev/api/v2/entries/en/${word}`
@@ -748,6 +682,7 @@ export default class Linkagram {
 
       const definition = entry[0]?.meanings[0]?.definitions[0]?.definition;
       if (definition) {
+        localStorage.setItem(cacheKey, definition);
         alert(word + "\n\n" + definition);
       }
     } catch (err) {
@@ -755,7 +690,24 @@ export default class Linkagram {
     }
   };
 
+  haptic = async (style: 'light' | 'medium' | 'heavy' | 'success' | 'error') => {
+    if (!isNative()) return;
+    try {
+      const { Haptics, ImpactStyle, NotificationType } = await import('@capacitor/haptics');
+      if (style === 'success') {
+        await Haptics.notification({ type: NotificationType.Success });
+      } else if (style === 'error') {
+        await Haptics.notification({ type: NotificationType.Error });
+      } else {
+        const map = { light: ImpactStyle.Light, medium: ImpactStyle.Medium, heavy: ImpactStyle.Heavy };
+        await Haptics.impact({ style: map[style] });
+      }
+    } catch {}
+  };
+
   flashButtons = (buttons: HTMLElement[], state: FlashState) => {
+    if (state === FlashState.Valid) this.haptic('success');
+    else if (state === FlashState.Invalid || state === FlashState.AlreadyFound) this.haptic('error');
     buttons.forEach((button) => button.classList.add(state.valueOf()));
     setTimeout(() => {
       buttons.forEach((button) => button.classList.remove(state.valueOf()));
@@ -843,9 +795,14 @@ export default class Linkagram {
       this.showModal("how-to-play-modal")(new Event("onGameEnded"));
     }
 
-    const stripeKey: string =
-      "pk_live_51MQ4wTDjdwEKhnhgi8jlWuTSTjrokSs6lBqHIFP9O6c7Sot00xW54LRCXprU1v2ToVuAoTnvr5gdOWG0jRKAyrZn00pWtSmzKq";
-    this.stripe = await loadStripe(stripeKey, { apiVersion: "2022-11-15" });
+    if (isNative()) {
+      const { create } = await import('../payment/StoreKitProvider');
+      this.paymentProvider = create();
+    } else {
+      const { create } = await import('../payment/StripeProvider');
+      this.paymentProvider = create();
+    }
+    await this.paymentProvider.initialize();
   };
 
   onGameEnded = () => {
@@ -878,6 +835,7 @@ export default class Linkagram {
       });
     }
     this.onStatsUpdated();
+    this.haptic('heavy');
     celebrate(() => this.showModal("stats-modal")(new Event("onGameEnded")));
   };
 
@@ -959,6 +917,7 @@ export default class Linkagram {
     const next = this.letterButtons[tile.index];
 
     this.selectedIndexes.push(tile.index);
+    this.haptic('light');
 
     if (previous) {
       // draw a line linking previous to next
@@ -1263,11 +1222,6 @@ export default class Linkagram {
       }
     }
 
-    // Update tile CSS classes
-    this.letterButtons.forEach((button) => {
-      button.classList.remove("selected", "highlighted", "candidate");
-    });
-
     // Collect all tiles in any path for highlighting
     const tilesInPaths = new Set<number>();
     for (const path of this.keyboardPaths) {
@@ -1276,31 +1230,10 @@ export default class Linkagram {
       }
     }
 
-    // Apply selected and candidate classes
-    for (let pos = 0; pos < wordLength; pos++) {
-      if (confirmedAtPosition[pos] !== null) {
-        this.letterButtons[confirmedAtPosition[pos]!].classList.add("selected");
-      } else {
-        for (const candidateIdx of candidatesAtPosition[pos]) {
-          this.letterButtons[candidateIdx].classList.add("candidate");
-        }
-      }
-    }
-
     // Draw connection lines between confirmed tiles
     const confirmed = confirmedAtPosition.filter(c => c !== null) as number[];
     for (let i = 1; i < confirmed.length; i++) {
       this.drawConnectionBetween(confirmed[i - 1], confirmed[i], i - 1);
-    }
-
-    // Handle "has-selection" class on board
-    const board = document.getElementById("board");
-    if (board) {
-      if (this.keyboardWord.length > 0) {
-        board.classList.add("has-selection");
-      } else {
-        board.classList.remove("has-selection");
-      }
     }
 
     // Update highlighted indexes for dimming (don't dim tiles in paths or adjacent to last candidates)
@@ -1317,7 +1250,20 @@ export default class Linkagram {
       }
     }
 
+    // onSelectionChanged resets selected/highlighted based on selectedIndexes (empty during keyboard mode)
     this.onSelectionChanged();
+
+    // Apply keyboard selected and candidate classes after onSelectionChanged so they aren't overwritten
+    this.letterButtons.forEach((button) => button.classList.remove("candidate"));
+    for (let pos = 0; pos < wordLength; pos++) {
+      if (confirmedAtPosition[pos] !== null) {
+        this.letterButtons[confirmedAtPosition[pos]!].classList.add("selected");
+      } else {
+        for (const candidateIdx of candidatesAtPosition[pos]) {
+          this.letterButtons[candidateIdx].classList.add("candidate");
+        }
+      }
+    }
   };
 
   drawConnectionBetween = (fromIdx: number, toIdx: number, segmentIndex: number) => {

@@ -47,44 +47,6 @@
   }
 }
 
-// Close button (X shape via pseudo-elements)
-.modal-close {
-  position: absolute;
-  top: 1rem;
-  right: 1rem;
-  width: 32px;
-  height: 32px;
-  z-index: 2;
-  background: none;
-  border: none;
-  cursor: pointer;
-  opacity: 0.6;
-  transition: opacity 0.15s;
-
-  &:hover {
-    opacity: 1;
-  }
-
-  &::before, &::after {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 20px;
-    height: 2px;
-    background: var(--text-primary);
-    border-radius: 1px;
-  }
-
-  &::before {
-    transform: translate(-50%, -50%) rotate(45deg);
-  }
-
-  &::after {
-    transform: translate(-50%, -50%) rotate(-45deg);
-  }
-}
-
 // Modal typography
 .modal-content h1 {
   font-size: 1.25rem;

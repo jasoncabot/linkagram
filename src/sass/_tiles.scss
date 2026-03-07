@@ -178,11 +178,11 @@
   border: 1px solid transparent;
   border-radius: 999px;
   margin-bottom: 0.5rem;
-  display: none;
+  visibility: hidden;
 }
 
 #current-word.has-word {
-  display: block;
+  visibility: visible;
   border-color: var(--glass-border);
   background: var(--glass-bg);
   backdrop-filter: blur(var(--glass-blur));

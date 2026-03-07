@@ -8,6 +8,9 @@
     "dev": "vite",
     "word": "node scripts/add-word.js",
     "build": "vite build",
+    "build:ios": "vite build --mode capacitor",
+    "cap:sync": "npx cap sync ios",
+    "ios": "npm run build:ios && npm run cap:sync && npx cap open ios",
     "serve": "vite preview"
   },
   "repository": {
@@ -21,6 +24,7 @@
   },
   "homepage": "https://github.com/jasoncabot/linkagram",
   "devDependencies": {
+    "@capacitor/cli": "^8.2.0",
     "@cloudflare/workers-types": "^4.20221111.1",
     "@rollup/plugin-alias": "^5.1.0",
     "@rollup/plugin-commonjs": "^25.0.7",
@@ -34,7 +38,13 @@
     "wrangler": "^3.71.0"
   },
   "dependencies": {
+    "@capacitor/core": "^8.2.0",
+    "@capacitor/haptics": "^8.0.1",
+    "@capacitor/ios": "^8.2.0",
+    "@capacitor/share": "^8.0.1",
+    "@capacitor/status-bar": "^8.0.1",
     "@types/webfontloader": "^1.6.33",
+    "cordova-plugin-purchase": "^13.13.1",
     "sass": "^1.45.0"
   }
 }

@@ -15,3 +15,17 @@ dist
 pay/bin
 .wrangler
 .dev.vars
+
+# iOS
+ios/App/App/public
+ios/App/Pods
+ios/App/App.xcworkspace/xcuserdata
+ios/App/DerivedData
+
+# Fastlane
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/screenshots
+fastlane/test_output
+*.ipa
+*dSYM.zip

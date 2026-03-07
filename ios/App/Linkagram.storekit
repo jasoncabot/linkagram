@@ -1,0 +1,41 @@
+{
+  "identifier" : "Linkagram",
+  "nonConsumableProducts" : [
+
+  ],
+  "nonRenewingSubscriptionProducts" : [
+
+  ],
+  "products" : [
+    {
+      "displayPrice" : "0.99",
+      "familySharable" : false,
+      "internalID" : "1F3A2B4C-5D6E-7F8A-9B0C-1D2E3F4A5B6C",
+      "localizations" : [
+        {
+          "description" : "Reveal letters in unknown words to help solve the puzzle",
+          "displayName" : "12 Hints",
+          "locale" : "en_GB"
+        }
+      ],
+      "productID" : "com.jasoncabot.linkagram.hints12",
+      "referenceName" : "12 Hints",
+      "type" : "Consumable"
+    }
+  ],
+  "settings" : {
+    "_applicationInternalID" : "6742540547",
+    "_developerTeamID" : "2V62Z49VFD",
+    "_failTransactionsEnabled" : false,
+    "_locale" : "en_GB",
+    "_storefront" : "GBR",
+    "_storeKitVersion" : "2"
+  },
+  "subscriptionGroups" : [
+
+  ],
+  "version" : {
+    "major" : 0,
+    "minor" : 3
+  }
+}

@@ -1,0 +1,24 @@
+devices([
+  "iPhone 11 Pro Max",           # 6.5" Display
+  "iPad Air 13-inch (M3)",       # 13" Display
+])
+
+languages(["en-US"])
+
+ios_version("26.1")
+
+scheme("App")
+project("ios/App/App.xcodeproj")
+
+output_directory("./fastlane/screenshots")
+
+clear_previous_screenshots(true)
+
+launch_arguments(["-uitesting", "-screenshotMode"])
+
+override_status_bar(true)
+override_status_bar_arguments("--time 9:41 --dataNetwork wifi --wifiBars 3 --cellularBars 4 --batteryState charged --batteryLevel 100")
+
+skip_open_summary(true)
+skip_helper_version_check(true)
+headless(false)

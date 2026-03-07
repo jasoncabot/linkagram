@@ -1,5 +1,6 @@
 import { hashCode } from './hash';
 import { keyForToday } from './key';
+import { isNative } from './platform';
 
 import Linkagram, { LinkagramConfig, LinkagramState } from './scenes/Linkagram';
 
@@ -7,9 +8,8 @@ const parseConfig: () => LinkagramConfig = () => {
     const parameters: URLSearchParams = new URLSearchParams(window.location.search);
 
     if (!parameters.get('id')) {
-        const today = new Date();
         // a unique puzzle every day ;)
-        const key = keyForToday();
+        const key = (window as any).__screenshotMode ? '20240315' : keyForToday();
         parameters.set('id', key);
     }
     if (!parameters.get('width')) {
@@ -66,11 +66,11 @@ const loadState: (config: LinkagramConfig) => (LinkagramState) = (config: Linkag
         startedAt: startedAtString ? new Date(startedAtString) : new Date(),
         finishedAt: finishedAtString ? new Date(finishedAtString) : null,
         hintCount: parseInt(localStorage.getItem(accountKey("hints")) || "30", 10),
-        played: JSON.parse(localStorage.getItem(accountKey("played")) || "[]"),
-        completed: JSON.parse(localStorage.getItem(accountKey("completed")) || "[]"),
-        streak: parseInt(localStorage.getItem(accountKey("streak")) || "0", 10),
-        maxStreak: parseInt(localStorage.getItem(accountKey("maxStreak")) || "0", 10),
-        fixes: new Set(JSON.parse(localStorage.getItem(accountKey("fixes")) || "[]")),
+        played: (window as any).__screenshotStats?.played ?? JSON.parse(localStorage.getItem(accountKey("played")) || "[]"),
+        completed: (window as any).__screenshotStats?.completed ?? JSON.parse(localStorage.getItem(accountKey("completed")) || "[]"),
+        streak: (window as any).__screenshotStats?.streak ?? parseInt(localStorage.getItem(accountKey("streak")) || "0", 10),
+        maxStreak: (window as any).__screenshotStats?.maxStreak ?? parseInt(localStorage.getItem(accountKey("maxStreak")) || "0", 10),
+        fixes: new Set((window as any).__screenshotStats?.fixes ?? JSON.parse(localStorage.getItem(accountKey("fixes")) || "[]")),
         save: (state: LinkagramState) => {
             localStorage.setItem(gameKey("words"), JSON.stringify(Array.from(state.words)));
             localStorage.setItem(gameKey("hints"), serialise(state.hints));
@@ -107,7 +107,12 @@ const loadState: (config: LinkagramConfig) => (LinkagramState) = (config: Linkag
     }
 }
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
+    if (isNative()) {
+        const { StatusBar, Style } = await import('@capacitor/status-bar');
+        StatusBar.setStyle({ style: Style.Dark });
+    }
+
     // start running game
     const config = parseConfig();
     const linkagram = new Linkagram(config, loadState(config));

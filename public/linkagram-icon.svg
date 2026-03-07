@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1536 1536" width="1536" height="1536">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0a0a1a"/>
+      <stop offset="33%" stop-color="#1a0a2e"/>
+      <stop offset="66%" stop-color="#0d1b2a"/>
+      <stop offset="100%" stop-color="#0a0a1a"/>
+    </linearGradient>
+    <filter id="glow-cyan" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="8" result="blur"/>
+      <feFlood flood-color="#00e5ff" flood-opacity="0.6"/>
+      <feComposite in2="blur" operator="in"/>
+      <feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="glow-green" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="8" result="blur"/>
+      <feFlood flood-color="#4ade80" flood-opacity="0.6"/>
+      <feComposite in2="blur" operator="in"/>
+      <feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="glow-yellow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="8" result="blur"/>
+      <feFlood flood-color="#f0d56e" flood-opacity="0.6"/>
+      <feComposite in2="blur" operator="in"/>
+      <feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="glow-red" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="8" result="blur"/>
+      <feFlood flood-color="#e8758a" flood-opacity="0.6"/>
+      <feComposite in2="blur" operator="in"/>
+      <feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <radialGradient id="ambient" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#00e5ff" stop-opacity="0.08"/>
+      <stop offset="60%" stop-color="#1a0a2e" stop-opacity="0.02"/>
+      <stop offset="100%" stop-color="transparent" stop-opacity="0"/>
+    </radialGradient>
+    <clipPath id="iosClip">
+      <rect width="1536" height="1536" rx="224" ry="224"/>
+    </clipPath>
+  </defs>
+
+  <g clip-path="url(#iosClip)">
+    <rect width="1536" height="1536" fill="url(#bg)"/>
+    <rect width="1536" height="1536" fill="url(#ambient)"/>
+
+    <!-- L -->
+    <rect x="310" y="310" width="916" height="916" rx="24" fill="rgba(255,255,255,0.07)" stroke="rgba(255,255,255,0.15)" stroke-width="2.5"/>
+    <text x="768" y="1024" font-family="'SF Pro Display','Helvetica Neue',Arial,sans-serif" font-size="768" font-weight="700" fill="#00e5ff" text-anchor="middle" filter="url(#glow-cyan)">L</text>
+
+    <!-- Decorative corner glows -->
+    <circle cx="160" cy="160" r="120" fill="#00e5ff" opacity="0.03"/>
+    <circle cx="1364" cy="1364" r="120" fill="#e8758a" opacity="0.03"/>
+  </g>
+</svg>

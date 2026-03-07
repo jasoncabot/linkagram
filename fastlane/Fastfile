@@ -1,0 +1,23 @@
+default_platform(:ios)
+
+platform :ios do
+  lane :beta do
+    setup_ci if ENV['CI']
+    match(type: "appstore", readonly: is_ci)
+    build_app(
+      project: "ios/App/App.xcodeproj",
+      scheme: "App",
+      export_method: "app-store"
+    )
+    upload_to_testflight(skip_waiting_for_build_processing: true)
+  end
+
+  lane :screenshots do
+    capture_screenshots
+  end
+
+  lane :release do
+    beta
+    deliver(submit_for_review: true, automatic_release: true, force: true)
+  end
+end
