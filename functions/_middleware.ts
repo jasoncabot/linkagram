@@ -8,7 +8,6 @@ import { Request } from "@cloudflare/workers-types";
 export interface Env {
   IMAGE_GENERATOR: Fetcher;
   PAYMENT_SERVICE: Fetcher;
-  PAYMENT_SERVICE_URL: string;
   ASSETS: any;
   ANALYTICS: AnalyticsEngineDataset;
   ACCOUNT_ID: string;
@@ -31,7 +30,7 @@ export async function onRequest(context: {
       body: JSON.stringify(letters),
     });
   } else if (pathname === "/hint_payment") {
-    return fetch(env.PAYMENT_SERVICE_URL, { method: request.method });
+    return env.PAYMENT_SERVICE.fetch(request.url, { method: request.method });
   } else if (pathname === "/stats" && request.method === "POST") {
     // read the hints used and time taken from the request body
     const body = (await request.json()) as LinkagramStatRequest;
