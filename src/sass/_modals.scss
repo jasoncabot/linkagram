@@ -88,6 +88,87 @@
   }
 }
 
+// Definition modal
+.define-content {
+  max-width: 360px;
+  text-align: center;
+}
+
+.define-word {
+  font-family: var(--font-mono);
+  font-size: 1.6rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-primary);
+  margin-bottom: 1.25rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--glass-border);
+}
+
+.define-body {
+  margin-bottom: 1.5rem;
+  min-height: 3rem;
+}
+
+.define-pos {
+  display: inline-block;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--glow-cyan);
+  background: rgba(var(--glow-cyan-rgb), 0.1);
+  border: 1px solid rgba(var(--glow-cyan-rgb), 0.2);
+  border-radius: 6px;
+  padding: 0.2rem 0.6rem;
+  margin-bottom: 0.75rem;
+}
+
+.define-meaning {
+  color: var(--text-secondary);
+  font-size: 1rem;
+  line-height: 1.6;
+  text-align: left;
+
+  & + .define-pos {
+    margin-top: 1rem;
+  }
+}
+
+.define-offline,
+.define-error {
+  color: var(--text-dim);
+  font-size: 0.9rem;
+  font-style: italic;
+}
+
+// Definition skeleton loader
+.define-skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  align-items: center;
+}
+
+.define-skeleton-line {
+  height: 0.85rem;
+  border-radius: 4px;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.06) 25%,
+    rgba(255, 255, 255, 0.12) 50%,
+    rgba(255, 255, 255, 0.06) 75%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.5s ease infinite;
+}
+
+@keyframes skeleton-shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
 // Payment / hint area
 #get-hints-pay {
   display: flex;

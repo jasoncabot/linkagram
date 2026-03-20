@@ -383,6 +383,13 @@ export default class Linkagram {
       ?.addEventListener("click", this.hideModal("how-to-play-modal"));
 
     document
+      .getElementById("define-modal-background")
+      ?.addEventListener("click", this.hideModal("define-modal"));
+    document
+      .getElementById("define-modal-close")
+      ?.addEventListener("click", this.hideModal("define-modal"));
+
+    document
       .getElementById("stats-button")
       ?.addEventListener("click", this.showModal("stats-modal"));
     document
@@ -657,17 +664,38 @@ export default class Linkagram {
   };
 
   define = async (word: string) => {
+    const wordEl = document.getElementById("define-word");
+    const bodyEl = document.getElementById("define-body");
+    const modal = document.getElementById("define-modal");
+    if (!wordEl || !bodyEl || !modal) return;
+
+    wordEl.textContent = word;
+    modal.classList.add("open");
+    this.currentModals.push(modal);
+    this.currentModals.forEach(
+      (m, i) => (m.style.zIndex = (50 + i * 10).toString())
+    );
+
     const cacheKey = `def:${word}`;
     const cached = localStorage.getItem(cacheKey);
     if (cached) {
-      alert(word + "\n\n" + cached);
+      bodyEl.innerHTML = cached;
       return;
     }
 
     if (!navigator.onLine) {
-      alert(word + "\n\n" + "(Definition available when online)");
+      bodyEl.innerHTML = `<p class="define-offline">Definition available when online</p>`;
       return;
     }
+
+    // Show skeleton loader
+    bodyEl.innerHTML =
+      `<div class="define-skeleton">` +
+      `<div class="define-skeleton-line" style="width:40%"></div>` +
+      `<div class="define-skeleton-line" style="width:90%"></div>` +
+      `<div class="define-skeleton-line" style="width:75%"></div>` +
+      `<div class="define-skeleton-line" style="width:60%"></div>` +
+      `</div>`;
 
     try {
       const result = await fetch(
@@ -676,17 +704,30 @@ export default class Linkagram {
       const entry = (await result.json()) as [
         {
           word: string;
-          meanings: [{ definitions: [{ definition: string }] }];
+          meanings: { partOfSpeech: string; definitions: { definition: string }[] }[];
         }
       ];
 
-      const definition = entry[0]?.meanings[0]?.definitions[0]?.definition;
-      if (definition) {
-        localStorage.setItem(cacheKey, definition);
-        alert(word + "\n\n" + definition);
+      const meanings = entry[0]?.meanings;
+      if (!meanings?.length) {
+        bodyEl.innerHTML = `<p class="define-error">No definition found</p>`;
+        return;
       }
+
+      let html = "";
+      for (const meaning of meanings) {
+        html += `<div class="define-pos">${meaning.partOfSpeech}</div>`;
+        const def = meaning.definitions[0]?.definition;
+        if (def) {
+          html += `<p class="define-meaning">${def}</p>`;
+        }
+      }
+
+      localStorage.setItem(cacheKey, html);
+      bodyEl.innerHTML = html;
     } catch (err) {
       console.log("Unable to find definition of " + word);
+      bodyEl.innerHTML = `<p class="define-error">Couldn't load definition</p>`;
     }
   };
 
