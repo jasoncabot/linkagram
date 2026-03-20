@@ -267,8 +267,29 @@ export default class Linkagram {
       currentWord.style.position = "fixed";
     }
 
+    // Use circular hit areas so diagonal swipes don't accidentally hit
+    // the tile above/below. Returns the matching letter element or null.
+    const findLetterAt = (x: number, y: number): HTMLElement | null => {
+      let closest: HTMLElement | null = null;
+      let closestDist = Infinity;
+      for (const btn of this.letterButtons) {
+        const rect = btn.getBoundingClientRect();
+        const cx = rect.left + rect.width / 2;
+        const cy = rect.top + rect.height / 2;
+        const radius = Math.min(rect.width, rect.height) / 2;
+        const dx = x - cx;
+        const dy = y - cy;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist <= radius && dist < closestDist) {
+          closest = btn;
+          closestDist = dist;
+        }
+      }
+      return closest;
+    };
+
     const updateTileSelection = (x: number, y: number, submit: boolean) => {
-      const letter = document.elementFromPoint(x, y) as HTMLElement;
+      const letter = findLetterAt(x, y);
       if (letter && letter.dataset.index) {
         const index = parseInt(letter.dataset.index, 10);
         const tile = this.tiles[index];
@@ -291,14 +312,13 @@ export default class Linkagram {
       if (this.keyboardWord.length > 0) {
         this.clearKeyboardSelection();
       }
-      const letter = document.elementFromPoint(
-        e.clientX,
-        e.clientY
-      ) as HTMLElement;
-      const index = parseInt(letter.dataset.index!, 10);
-      // if this letter has already been picked previously
-      selectedNewLetter =
-        this.selectedIndexes.find((i) => i === index) === undefined;
+      const letter = findLetterAt(e.clientX, e.clientY);
+      if (letter && letter.dataset.index) {
+        const index = parseInt(letter.dataset.index, 10);
+        // if this letter has already been picked previously
+        selectedNewLetter =
+          this.selectedIndexes.find((i) => i === index) === undefined;
+      }
       firstTile = updateTileSelection(e.clientX, e.clientY, false);
     });
     board.addEventListener("pointermove", (e: PointerEvent) => {
@@ -309,10 +329,7 @@ export default class Linkagram {
     });
     board.addEventListener("pointerup", (e: PointerEvent) => {
       e.preventDefault();
-      const letter = document.elementFromPoint(
-        e.clientX,
-        e.clientY
-      ) as HTMLElement;
+      const letter = findLetterAt(e.clientX, e.clientY);
       // if we lifted up on a different letter, no letter or a previously selected letter
       if (!letter || letter != firstTile || !selectedNewLetter) {
         // submit it
