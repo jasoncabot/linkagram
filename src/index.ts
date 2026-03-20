@@ -119,4 +119,16 @@ document.addEventListener('DOMContentLoaded', async () => {
     linkagram.run();
 
     (document as any).linkagram = linkagram;
+
+    // When the app returns from background (or a browser tab becomes visible again),
+    // check if the puzzle has changed (i.e. it's a new day) and reload if so.
+    const loadedPuzzleId = config.id;
+    document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') {
+            const currentPuzzleId = parseInt(keyForToday(), 10);
+            if (currentPuzzleId !== loadedPuzzleId) {
+                window.location.reload();
+            }
+        }
+    });
 });
