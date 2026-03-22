@@ -1,5 +1,5 @@
 devices([
-  "iPhone 15 Pro Max",           # 6.5" Display
+  "iPhone 15 Pro Max",           # 6.7" Display
   "iPad Air 13-inch (M3)",       # 13" Display
 ])
 
