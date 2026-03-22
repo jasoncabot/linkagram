@@ -22,6 +22,14 @@ export async function onRequest(context: {
   const { request, next, env } = context;
   const { pathname, origin } = new URL(request.url);
 
+  // Apple requires AASA to be served as application/json with no redirects
+  if (pathname === "/.well-known/apple-app-site-association") {
+    const asset = await env.ASSETS.fetch(context.request.url);
+    return new Response(asset.body, {
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+
   // Serve up some dynamic text and data
   if (pathname === "/assets/sample.png") {
     const { letters } = boardAndSolutionsForToday();
@@ -80,14 +88,11 @@ export async function onRequest(context: {
   <meta property="og:image:height" content="256">
   <meta property="og:url" content="${origin}/share">
   <meta property="og:site_name" content="Linkagram">
-  <meta name="apple-itunes-app" content="app-id=882340053">
+  <meta name="apple-itunes-app" content="app-id=882340053, app-argument=${origin}/share">
   <script>
-    var ua = navigator.userAgent || "";
-    if (/iPhone|iPad|iPod/i.test(ua)) {
-      window.location.replace("https://apps.apple.com/app/linkagram/id882340053");
-    } else {
-      window.location.replace("${origin}/");
-    }
+    // With Universal Links, iOS users with the app installed go straight
+    // to the app and never reach this page. Everyone else gets the web app.
+    window.location.replace("${origin}/");
   </script>
 </head>
 <body>
