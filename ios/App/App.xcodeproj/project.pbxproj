@@ -17,6 +17,14 @@
 		50B271D11FEDC1A000F3C39B /* public in Resources */ = {isa = PBXBuildFile; fileRef = 50B271D01FEDC1A000F3C39B /* public */; };
 		85E1771A20A982032467733A /* LinkagramUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E145EFFCA7F403667D0BFE6 /* LinkagramUITests.swift */; };
 		A1B2C3D4E5F600020016851F /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F600010016851F /* ViewController.swift */; };
+		BB000001AA000001AA000001 /* LinkagramNativePlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000001AA000001AA000001 /* LinkagramNativePlugin.swift */; };
+		BB000002AA000002AA000002 /* LinkagramShortcuts.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000002AA000002AA000002 /* LinkagramShortcuts.swift */; };
+		BB000003AA000003AA000003 /* BoardGenerator.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000003AA000003AA000003 /* BoardGenerator.swift */; };
+		BB000004AA000004AA000004 /* SharedDataManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000004AA000004AA000004 /* SharedDataManager.swift */; };
+		BB000005AA000005AA000005 /* LinkagramWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000005AA000005AA000005 /* LinkagramWidget.swift */; };
+		BB000006AA000006AA000006 /* BoardGenerator.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000003AA000003AA000003 /* BoardGenerator.swift */; };
+		BB000007AA000007AA000007 /* SharedDataManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000004AA000004AA000004 /* SharedDataManager.swift */; };
+		BB000008AA000008AA000008 /* LinkagramWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = AA000008AA000008AA000008 /* LinkagramWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		D579BB38ACF55CD80594A335 /* SnapshotHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B79394EA9A45A25D5D3801E /* SnapshotHelper.swift */; };
 		DAA6D009142F4EED41C740BF /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2AD1CE25BF5DB5C86EFCAAB5 /* Foundation.framework */; };
 /* End PBXBuildFile section */
@@ -29,7 +37,28 @@
 			remoteGlobalIDString = 504EC3031FED79650016851F;
 			remoteInfo = App;
 		};
+		GG000001AA000001AA000001 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 504EC2FC1FED79650016851F /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = DD000001AA000001AA000001;
+			remoteInfo = LinkagramWidgetExtension;
+		};
 /* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		EE000004AA000004AA000004 /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				BB000008AA000008AA000008 /* LinkagramWidgetExtension.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		0E145EFFCA7F403667D0BFE6 /* LinkagramUITests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = LinkagramUITests.swift; sourceTree = "<group>"; };
@@ -47,6 +76,14 @@
 		958DCC722DB07C7200EA8C5F /* debug.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; name = debug.xcconfig; path = ../debug.xcconfig; sourceTree = SOURCE_ROOT; };
 		9B79394EA9A45A25D5D3801E /* SnapshotHelper.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SnapshotHelper.swift; sourceTree = "<group>"; };
 		A1B2C3D4E5F600010016851F /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
+		AA000001AA000001AA000001 /* LinkagramNativePlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LinkagramNativePlugin.swift; sourceTree = "<group>"; };
+		AA000002AA000002AA000002 /* LinkagramShortcuts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LinkagramShortcuts.swift; sourceTree = "<group>"; };
+		AA000003AA000003AA000003 /* BoardGenerator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BoardGenerator.swift; sourceTree = "<group>"; };
+		AA000004AA000004AA000004 /* SharedDataManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedDataManager.swift; sourceTree = "<group>"; };
+		AA000005AA000005AA000005 /* LinkagramWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LinkagramWidget.swift; sourceTree = "<group>"; };
+		AA000006AA000006AA000006 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		AA000007AA000007AA000007 /* LinkagramWidget.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = LinkagramWidget.entitlements; sourceTree = "<group>"; };
+		AA000008AA000008AA000008 /* LinkagramWidgetExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = LinkagramWidgetExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		F1A2B3C4D5E600010016851F /* App.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = App.entitlements; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -67,6 +104,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		EE000002AA000002AA000002 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -83,6 +127,8 @@
 			children = (
 				958DCC722DB07C7200EA8C5F /* debug.xcconfig */,
 				504EC3061FED79650016851F /* App */,
+				CC000001AA000001AA000001 /* Shared */,
+				CC000002AA000002AA000002 /* LinkagramWidget */,
 				504EC3051FED79650016851F /* Products */,
 				1DA1063BF77E6E8B7C0C23F2 /* Frameworks */,
 				CB65EAB3694AF4DCFF69B95E /* LinkagramUITests */,
@@ -94,6 +140,7 @@
 			children = (
 				504EC3041FED79650016851F /* App.app */,
 				12EFC8B1C3CAC82457799042 /* LinkagramUITests.xctest */,
+				AA000008AA000008AA000008 /* LinkagramWidgetExtension.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -104,6 +151,8 @@
 				50379B222058CBB4000EE86E /* capacitor.config.json */,
 				504EC3071FED79650016851F /* AppDelegate.swift */,
 				A1B2C3D4E5F600010016851F /* ViewController.swift */,
+				AA000001AA000001AA000001 /* LinkagramNativePlugin.swift */,
+				AA000002AA000002AA000002 /* LinkagramShortcuts.swift */,
 				F1A2B3C4D5E600010016851F /* App.entitlements */,
 				504EC30B1FED79650016851F /* Main.storyboard */,
 				504EC30E1FED79650016851F /* Assets.xcassets */,
@@ -132,6 +181,25 @@
 			path = LinkagramUITests;
 			sourceTree = "<group>";
 		};
+		CC000001AA000001AA000001 /* Shared */ = {
+			isa = PBXGroup;
+			children = (
+				AA000003AA000003AA000003 /* BoardGenerator.swift */,
+				AA000004AA000004AA000004 /* SharedDataManager.swift */,
+			);
+			path = Shared;
+			sourceTree = "<group>";
+		};
+		CC000002AA000002AA000002 /* LinkagramWidget */ = {
+			isa = PBXGroup;
+			children = (
+				AA000005AA000005AA000005 /* LinkagramWidget.swift */,
+				AA000006AA000006AA000006 /* Info.plist */,
+				AA000007AA000007AA000007 /* LinkagramWidget.entitlements */,
+			);
+			path = LinkagramWidget;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -142,10 +210,12 @@
 				504EC3001FED79650016851F /* Sources */,
 				504EC3011FED79650016851F /* Frameworks */,
 				504EC3021FED79650016851F /* Resources */,
+				EE000004AA000004AA000004 /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				GG000002AA000002AA000002 /* PBXTargetDependency */,
 			);
 			name = App;
 			packageProductDependencies = (
@@ -154,6 +224,23 @@
 			productName = App;
 			productReference = 504EC3041FED79650016851F /* App.app */;
 			productType = "com.apple.product-type.application";
+		};
+		DD000001AA000001AA000001 /* LinkagramWidgetExtension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = FF000003AA000003AA000003 /* Build configuration list for PBXNativeTarget "LinkagramWidgetExtension" */;
+			buildPhases = (
+				EE000001AA000001AA000001 /* Sources */,
+				EE000002AA000002AA000002 /* Frameworks */,
+				EE000003AA000003AA000003 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = LinkagramWidgetExtension;
+			productName = LinkagramWidgetExtension;
+			productReference = AA000008AA000008AA000008 /* LinkagramWidgetExtension.appex */;
+			productType = "com.apple.product-type.app-extension";
 		};
 		EA187431D7AF9D3D253BE479 /* LinkagramUITests */ = {
 			isa = PBXNativeTarget;
@@ -179,12 +266,17 @@
 		504EC2FC1FED79650016851F /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
+				BuildIndependentTargetsInParallel = YES;
 				LastSwiftUpdateCheck = 0920;
-				LastUpgradeCheck = 0920;
+				LastUpgradeCheck = 2630;
 				TargetAttributes = {
 					504EC3031FED79650016851F = {
 						CreatedOnToolsVersion = 9.2;
 						LastSwiftMigration = 1100;
+						ProvisioningStyle = Automatic;
+					};
+					DD000001AA000001AA000001 = {
+						CreatedOnToolsVersion = 15.0;
 						ProvisioningStyle = Automatic;
 					};
 				};
@@ -207,6 +299,7 @@
 			targets = (
 				504EC3031FED79650016851F /* App */,
 				EA187431D7AF9D3D253BE479 /* LinkagramUITests */,
+				DD000001AA000001AA000001 /* LinkagramWidgetExtension */,
 			);
 		};
 /* End PBXProject section */
@@ -232,6 +325,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		EE000003AA000003AA000003 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
@@ -241,6 +341,10 @@
 			files = (
 				504EC3081FED79650016851F /* AppDelegate.swift in Sources */,
 				A1B2C3D4E5F600020016851F /* ViewController.swift in Sources */,
+				BB000001AA000001AA000001 /* LinkagramNativePlugin.swift in Sources */,
+				BB000002AA000002AA000002 /* LinkagramShortcuts.swift in Sources */,
+				BB000003AA000003AA000003 /* BoardGenerator.swift in Sources */,
+				BB000004AA000004AA000004 /* SharedDataManager.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -253,6 +357,16 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		EE000001AA000001AA000001 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				BB000005AA000005AA000005 /* LinkagramWidget.swift in Sources */,
+				BB000006AA000006AA000006 /* BoardGenerator.swift in Sources */,
+				BB000007AA000007AA000007 /* SharedDataManager.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -261,6 +375,11 @@
 			name = App;
 			target = 504EC3031FED79650016851F /* App */;
 			targetProxy = B12D2446DFC403FA66C99DD9 /* PBXContainerItemProxy */;
+		};
+		GG000002AA000002AA000002 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = DD000001AA000001AA000001 /* LinkagramWidgetExtension */;
+			targetProxy = GG000001AA000001AA000001 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -288,7 +407,6 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = 2V62Z49VFD;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "";
 				PRODUCT_BUNDLE_IDENTIFIER = com.jasoncabot.linkagram.UITests;
@@ -315,6 +433,7 @@
 				CLANG_WARN_BOOL_CONVERSION = YES;
 				CLANG_WARN_COMMA = YES;
 				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
 				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
 				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
 				CLANG_WARN_EMPTY_BODY = YES;
@@ -322,8 +441,10 @@
 				CLANG_WARN_INFINITE_RECURSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
 				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
 				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
 				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
 				CLANG_WARN_STRICT_PROTOTYPES = YES;
 				CLANG_WARN_SUSPICIOUS_MOVE = YES;
@@ -333,8 +454,10 @@
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = 2V62Z49VFD;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_NO_COMMON_BLOCKS = YES;
@@ -349,10 +472,11 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
 				MTL_ENABLE_DEBUG_INFO = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 			};
@@ -372,6 +496,7 @@
 				CLANG_WARN_BOOL_CONVERSION = YES;
 				CLANG_WARN_COMMA = YES;
 				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
 				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
 				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
 				CLANG_WARN_EMPTY_BODY = YES;
@@ -379,8 +504,10 @@
 				CLANG_WARN_INFINITE_RECURSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
 				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
 				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
 				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
 				CLANG_WARN_STRICT_PROTOTYPES = YES;
 				CLANG_WARN_SUSPICIOUS_MOVE = YES;
@@ -390,8 +517,10 @@
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = 2V62Z49VFD;
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
@@ -400,9 +529,10 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				SWIFT_OPTIMIZATION_LEVEL = "-O";
 				VALIDATE_PRODUCT = YES;
@@ -418,11 +548,10 @@
 				CODE_SIGN_ENTITLEMENTS = App/App.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 2V62Z49VFD;
 				INFOPLIST_FILE = App/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Linkagram;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.word-games";
-				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.6;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -445,11 +574,10 @@
 				CODE_SIGN_ENTITLEMENTS = App/App.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 2V62Z49VFD;
 				INFOPLIST_FILE = App/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Linkagram;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.word-games";
-				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.6;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -467,7 +595,6 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = 2V62Z49VFD;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "";
 				PRODUCT_BUNDLE_IDENTIFIER = com.jasoncabot.linkagram.UITests;
@@ -476,6 +603,60 @@
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				TEST_TARGET_NAME = App;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		FF000001AA000001AA000001 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = LinkagramWidget/LinkagramWidget.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = LinkagramWidget/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "Linkagram Widget";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.6;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 2.0.2;
+				PRODUCT_BUNDLE_IDENTIFIER = com.jasoncabot.linkagram.widget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		FF000002AA000002AA000002 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = LinkagramWidget/LinkagramWidget.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = LinkagramWidget/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "Linkagram Widget";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.6;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 2.0.2;
+				PRODUCT_BUNDLE_IDENTIFIER = com.jasoncabot.linkagram.widget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
 				VALIDATE_PRODUCT = YES;
 			};
 			name = Release;
@@ -506,6 +687,15 @@
 			buildConfigurations = (
 				504EC3171FED79650016851F /* Debug */,
 				504EC3181FED79650016851F /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		FF000003AA000003AA000003 /* Build configuration list for PBXNativeTarget "LinkagramWidgetExtension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				FF000001AA000001AA000001 /* Debug */,
+				FF000002AA000002AA000002 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

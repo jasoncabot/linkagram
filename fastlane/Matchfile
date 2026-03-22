@@ -1,4 +1,4 @@
 git_url("git@github.com:jasoncabot/ios-certificates.git")
 storage_mode("git")
 type("appstore")
-app_identifier("com.jasoncabot.linkagram")
+app_identifier(["com.jasoncabot.linkagram", "com.jasoncabot.linkagram.widget"])

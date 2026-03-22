@@ -4,6 +4,7 @@ import { keyForDate, keyForToday } from "../key";
 import { isNative } from "../platform";
 import type { PaymentProvider } from "../payment/PaymentProvider";
 import { Share } from "@capacitor/share";
+import { syncGameStateToNative, updateWidgetData, getCloudState, requestNotificationPermissionIfNeeded } from "../native-bridge";
 
 export interface LinkagramStatRequest {
   hintsRemaining: number;
@@ -595,6 +596,7 @@ export default class Linkagram {
       this.flashButtons(buttons, FlashState.Valid);
       this.flashTotalFound();
       this.onWordListUpdated();
+      if (isNative()) this.updateWidget("in_progress");
     } else {
       this.flashButtons(buttons, FlashState.Invalid);
     }
@@ -853,6 +855,25 @@ export default class Linkagram {
       this.showModal("how-to-play-modal")(new Event("onGameEnded"));
     }
 
+    // Sync with native layer: iCloud merge, widget update
+    if (isNative()) {
+      // Check for cross-device data from iCloud
+      const cloudState = await getCloudState();
+      if (cloudState) {
+        if (cloudState.played) this.state.played = cloudState.played;
+        if (cloudState.completed) this.state.completed = cloudState.completed;
+        if (cloudState.streak !== undefined) this.state.streak = cloudState.streak;
+        if (cloudState.maxStreak !== undefined) this.state.maxStreak = cloudState.maxStreak;
+        if (cloudState.hintCount !== undefined) this.state.hintCount = cloudState.hintCount;
+        this.state.save(this.state);
+        this.onStatsUpdated();
+      }
+
+      // Push current state and widget data
+      this.syncToNative();
+      this.updateWidget("in_progress");
+    }
+
     if (isNative()) {
       const { create } = await import('../payment/StoreKitProvider');
       this.paymentProvider = create();
@@ -891,6 +912,13 @@ export default class Linkagram {
           maxStreak: this.state.maxStreak,
         } as LinkagramStatRequest),
       });
+
+      // Sync to native: iCloud, widget, and check if we should ask for notifications
+      if (isNative()) {
+        this.syncToNative();
+        this.updateWidget("completed");
+        requestNotificationPermissionIfNeeded(this.state.streak);
+      }
     }
     this.onStatsUpdated();
     this.haptic('heavy');
@@ -899,6 +927,27 @@ export default class Linkagram {
 
   onWordRevealed = (word: string) => {
     this.state.words.add(word);
+  };
+
+  syncToNative = () => {
+    syncGameStateToNative({
+      streak: this.state.streak,
+      maxStreak: this.state.maxStreak,
+      played: this.state.played,
+      completed: this.state.completed,
+      hintCount: this.state.hintCount,
+      fixes: Array.from(this.state.fixes),
+    });
+  };
+
+  updateWidget = (status: string) => {
+    updateWidgetData({
+      todayKey: keyForToday(),
+      letters: this.tiles.map((t) => t.value),
+      status,
+      wordsFound: this.state.words.size,
+      wordsTotal: this.wordList.words.size,
+    });
   };
 
   onStatsUpdated = () => {
