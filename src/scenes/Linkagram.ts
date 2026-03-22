@@ -450,7 +450,7 @@ export default class Linkagram {
           }
 
           const shareUrl = isNative()
-            ? "https://apps.apple.com/app/linkagram/id882340053"
+            ? "https://linkagram.jasoncabot.me/share"
             : document.URL;
 
           if (isNative()) {

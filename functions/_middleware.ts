@@ -63,6 +63,40 @@ export async function onRequest(context: {
         body: query,
       }
     );
+  } else if (pathname === "/share") {
+    const { words, letters } = boardAndSolutionsForToday();
+    const wordCount = words.size;
+    const imageUrl = `${origin}/assets/${letters.join("")}.png`;
+    const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Linkagram - Daily Word Puzzle</title>
+  <meta property="og:title" content="Linkagram - Daily Word Puzzle">
+  <meta property="og:description" content="${wordCount} word${wordCount === 1 ? "" : "s"} to find today. Play now to find them all.">
+  <meta property="og:image" content="${imageUrl}">
+  <meta property="og:image:width" content="256">
+  <meta property="og:image:height" content="256">
+  <meta property="og:url" content="${origin}/share">
+  <meta property="og:site_name" content="Linkagram">
+  <meta name="apple-itunes-app" content="app-id=882340053">
+  <script>
+    var ua = navigator.userAgent || "";
+    if (/iPhone|iPad|iPod/i.test(ua)) {
+      window.location.replace("https://apps.apple.com/app/linkagram/id882340053");
+    } else {
+      window.location.replace("${origin}/");
+    }
+  </script>
+</head>
+<body>
+  <p>Redirecting to <a href="${origin}/">Linkagram</a>...</p>
+</body>
+</html>`;
+    return new Response(html, {
+      headers: { "Content-Type": "text/html;charset=UTF-8" },
+    });
   } else if (pathname === "/") {
     const { words, letters } = boardAndSolutionsForToday();
     const asset = await env.ASSETS.fetch(context.request.url);
