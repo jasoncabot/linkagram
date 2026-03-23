@@ -110,6 +110,51 @@ final class SharedDataManager {
         return appGroup?.integer(forKey: Key.streak) ?? 0
     }
 
+    // MARK: - Dictionary cache
+
+    /// Write the dictionary word list to the App Group container as a JSON file.
+    func cacheDictionary(words: [String]) {
+        guard let containerURL = FileManager.default.containerURL(
+            forSecurityApplicationGroupIdentifier: SharedDataManager.appGroupID
+        ) else { return }
+        let fileURL = containerURL.appendingPathComponent("dictionary.json")
+        if let data = try? JSONSerialization.data(withJSONObject: words) {
+            try? data.write(to: fileURL, options: .atomic)
+        }
+    }
+
+    /// Read the cached dictionary from the App Group container.
+    func cachedDictionary() -> [String]? {
+        guard let containerURL = FileManager.default.containerURL(
+            forSecurityApplicationGroupIdentifier: SharedDataManager.appGroupID
+        ) else { return nil }
+        let fileURL = containerURL.appendingPathComponent("dictionary.json")
+        guard let data = try? Data(contentsOf: fileURL),
+              let words = try? JSONSerialization.jsonObject(with: data) as? [String] else {
+            return nil
+        }
+        return words
+    }
+
+    /// Seed the App Group dictionary cache from the bundled small.json if no cache exists yet.
+    func seedDictionaryFromBundleIfNeeded() {
+        // Skip if already cached
+        if let containerURL = FileManager.default.containerURL(
+            forSecurityApplicationGroupIdentifier: SharedDataManager.appGroupID
+        ) {
+            let fileURL = containerURL.appendingPathComponent("dictionary.json")
+            if FileManager.default.fileExists(atPath: fileURL.path) { return }
+        }
+
+        // Look for the bundled dictionary in the main app bundle
+        guard let bundleURL = Bundle.main.url(forResource: "small", withExtension: "json", subdirectory: "public/data"),
+              let data = try? Data(contentsOf: bundleURL),
+              let words = try? JSONSerialization.jsonObject(with: data) as? [String] else {
+            return
+        }
+        cacheDictionary(words: words)
+    }
+
     // MARK: - iCloud sync (called on app launch)
 
     /// Returns merged state from iCloud if it has newer/better data, nil otherwise.

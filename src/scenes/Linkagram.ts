@@ -4,7 +4,7 @@ import { keyForDate, keyForToday } from "../key";
 import { isNative } from "../platform";
 import type { PaymentProvider } from "../payment/PaymentProvider";
 import { Share } from "@capacitor/share";
-import { syncGameStateToNative, updateWidgetData, getCloudState, requestNotificationPermissionIfNeeded } from "../native-bridge";
+import { syncGameStateToNative, updateWidgetData, getCloudState, requestNotificationPermissionIfNeeded, scheduleStreakReminder, cancelStreakReminder, cacheDictionary } from "../native-bridge";
 
 export interface LinkagramStatRequest {
   hintsRemaining: number;
@@ -259,6 +259,11 @@ export default class Linkagram {
     const words = await wordsResponse.json();
     const frequencies = await frequenciesResponse.json();
     this.initialise(words, frequencies);
+
+    // Cache dictionary to App Group so the widget can compute word counts
+    if (isNative()) {
+      cacheDictionary(words);
+    }
 
     const isMobile = window.matchMedia("(max-width: 767px)").matches || isNative();
     const wordYOffset = isNative() ? -90 : (isMobile ? -150 : -90);
@@ -872,6 +877,12 @@ export default class Linkagram {
       // Push current state and widget data
       this.syncToNative();
       this.updateWidget("in_progress");
+
+      // Schedule streak reminder at 9 PM if streak is at risk
+      const todayKey = keyForToday();
+      if (this.state.streak > 0 && !this.state.completed.includes(todayKey)) {
+        scheduleStreakReminder(this.state.streak);
+      }
     }
 
     if (isNative()) {
@@ -917,6 +928,7 @@ export default class Linkagram {
       if (isNative()) {
         this.syncToNative();
         this.updateWidget("completed");
+        cancelStreakReminder();
         requestNotificationPermissionIfNeeded(this.state.streak);
       }
     }

@@ -15,16 +15,20 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             // iCloud data changed externally — the web layer will pick it up next launch
         }
 
+        // Seed dictionary cache from bundle if not yet cached (so widget can compute word counts)
+        SharedDataManager.shared.seedDictionaryFromBundleIfNeeded()
+
         // Ensure widget has today's grid even before web layer loads
         let todayKey = BoardGenerator.keyForDate(Date())
         if SharedDataManager.shared.widgetTodayKey() != todayKey {
             let letters = BoardGenerator.lettersForToday()
+            let wordsTotal = BoardGenerator.wordCountForDate(Date())
             SharedDataManager.shared.updateWidgetData(
                 todayKey: todayKey,
                 letters: letters,
                 status: "not_started",
                 wordsFound: 0,
-                wordsTotal: 0
+                wordsTotal: wordsTotal
             )
         }
 

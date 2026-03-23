@@ -36,6 +36,11 @@ interface LinkagramNativePlugin {
 
     scheduleDailyReminder(): Promise<{ status: string }>;
     cancelDailyReminder(): Promise<{ status: string }>;
+
+    scheduleStreakReminder(options: { streak: number }): Promise<{ status: string }>;
+    cancelStreakReminder(): Promise<{ status: string }>;
+
+    cacheDictionary(options: { words: string[] }): Promise<{ status: string }>;
 }
 
 const LinkagramNative = registerPlugin<LinkagramNativePlugin>('LinkagramNative');
@@ -102,5 +107,32 @@ export async function requestNotificationPermissionIfNeeded(streak: number) {
         await LinkagramNative.requestNotificationPermission();
     } catch (e) {
         console.warn('Failed to request notification permission:', e);
+    }
+}
+
+export async function scheduleStreakReminder(streak: number) {
+    if (!isNative()) return;
+    try {
+        await LinkagramNative.scheduleStreakReminder({ streak });
+    } catch (e) {
+        console.warn('Failed to schedule streak reminder:', e);
+    }
+}
+
+export async function cancelStreakReminder() {
+    if (!isNative()) return;
+    try {
+        await LinkagramNative.cancelStreakReminder();
+    } catch (e) {
+        console.warn('Failed to cancel streak reminder:', e);
+    }
+}
+
+export async function cacheDictionary(words: string[]) {
+    if (!isNative()) return;
+    try {
+        await LinkagramNative.cacheDictionary({ words });
+    } catch (e) {
+        console.warn('Failed to cache dictionary:', e);
     }
 }

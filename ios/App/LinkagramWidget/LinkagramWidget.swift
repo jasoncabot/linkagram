@@ -42,13 +42,21 @@ struct LinkagramProvider: TimelineProvider {
             letters = BoardGenerator.lettersForToday()
         }
 
+        let isToday = data.widgetTodayKey() == todayKey
+        let wordsTotal: Int
+        if isToday && data.widgetWordsTotal() > 0 {
+            wordsTotal = data.widgetWordsTotal()
+        } else {
+            wordsTotal = BoardGenerator.wordCountForToday()
+        }
+
         return LinkagramEntry(
             date: Date(),
             letters: letters,
             streak: data.widgetStreak(),
-            status: data.widgetTodayKey() == todayKey ? data.widgetTodayStatus() : "not_started",
-            wordsFound: data.widgetTodayKey() == todayKey ? data.widgetWordsFound() : 0,
-            wordsTotal: data.widgetTodayKey() == todayKey ? data.widgetWordsTotal() : 0
+            status: isToday ? data.widgetTodayStatus() : "not_started",
+            wordsFound: isToday ? data.widgetWordsFound() : 0,
+            wordsTotal: wordsTotal
         )
     }
 }
@@ -181,9 +189,15 @@ struct LinkagramWidgetEntryView: View {
                 .font(.caption2)
                 .foregroundColor(.white.opacity(0.7))
         default:
-            Text("Play")
-                .font(.caption2.bold())
-                .foregroundColor(.white.opacity(0.9))
+            if entry.wordsTotal > 0 {
+                Text("\(entry.wordsTotal) words")
+                    .font(.caption2)
+                    .foregroundColor(.white.opacity(0.7))
+            } else {
+                Text("Play")
+                    .font(.caption2.bold())
+                    .foregroundColor(.white.opacity(0.9))
+            }
         }
     }
 
@@ -203,9 +217,20 @@ struct LinkagramWidgetEntryView: View {
                     .tint(.purple)
             }
         default:
-            Label("Tap to play", systemImage: "play.circle.fill")
-                .font(.subheadline.bold())
-                .foregroundColor(.white.opacity(0.9))
+            if entry.wordsTotal > 0 {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("\(entry.wordsTotal) words to find")
+                        .font(.subheadline)
+                        .foregroundColor(.white.opacity(0.8))
+                    Label("Tap to play", systemImage: "play.circle.fill")
+                        .font(.caption.bold())
+                        .foregroundColor(.white.opacity(0.7))
+                }
+            } else {
+                Label("Tap to play", systemImage: "play.circle.fill")
+                    .font(.subheadline.bold())
+                    .foregroundColor(.white.opacity(0.9))
+            }
         }
     }
 }

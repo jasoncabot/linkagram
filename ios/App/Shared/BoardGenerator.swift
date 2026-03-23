@@ -76,6 +76,104 @@ struct BoardGenerator {
 
         return weightedArray.slice(0, count);
     }
+
+    // --- Trie (mirrors src/trie.ts) ---
+
+    function buildTrie(words) {
+        const trie = { value: "", isLeaf: false, children: {} };
+        for (let w = 0; w < words.length; w++) {
+            const word = words[w];
+            let current = trie;
+            for (let i = 0; i < word.length; i++) {
+                const letter = word.charAt(i);
+                let child = current.children[letter];
+                if (!child) {
+                    child = { value: current.value + letter, isLeaf: i === word.length - 1, children: {} };
+                    current.children[letter] = child;
+                }
+                if (i === word.length - 1) child.isLeaf = true;
+                current = child;
+            }
+        }
+        return trie;
+    }
+
+    function isWord(trie, word) {
+        let node = trie;
+        for (let i = 0; i < word.length; i++) {
+            node = node.children[word.charAt(i)];
+            if (!node) return false;
+        }
+        return node.isLeaf;
+    }
+
+    function isPrefix(trie, word) {
+        let node = trie;
+        for (let i = 0; i < word.length; i++) {
+            node = node.children[word.charAt(i)];
+            if (!node) return false;
+        }
+        return true;
+    }
+
+    // --- Adjacency & word finding (mirrors Linkagram.ts) ---
+
+    function buildLinks(width, height) {
+        const count = width * height;
+        const links = [];
+        for (let x = 0; x < count; x++) {
+            const candidates = [
+                x - width - 1, x - width, x - width + 1,
+                x - 1,         x,         x + 1,
+                x + width - 1, x + width, x + width + 1
+            ];
+            links[x] = candidates.filter((linkIndex, idx) => {
+                return !(
+                    linkIndex === x ||
+                    linkIndex < 0 ||
+                    linkIndex > count - 1 ||
+                    (x % width === 0 && idx % 3 === 0) ||
+                    ((x + 1) % width === 0 && (idx + 1) % 3 === 0) ||
+                    (x < width - 1 && idx < 3) ||
+                    (x > count - (width + 1) && idx > 5)
+                );
+            });
+        }
+        return links;
+    }
+
+    function findAllWords(letters, links, trie) {
+        const allWords = new Set();
+        const count = letters.length;
+        const stack = [];
+        for (let i = 0; i < count; i++) {
+            stack.push([i, "", 0]);
+        }
+        while (stack.length > 0) {
+            const [idx, word, visited] = stack.pop();
+            const nextWord = word + letters[idx];
+            const nextVisited = visited | (1 << idx);
+
+            if (!isPrefix(trie, nextWord)) continue;
+            if (isWord(trie, nextWord)) allWords.add(nextWord);
+
+            const adj = links[idx];
+            for (let j = 0; j < adj.length; j++) {
+                const ni = adj[j];
+                if (!(nextVisited & (1 << ni))) {
+                    stack.push([ni, nextWord, nextVisited]);
+                }
+            }
+        }
+        return Array.from(allWords);
+    }
+
+    function wordCount(year, month, day, dictionary) {
+        const letters = generateBoard(year, month, day);
+        const links = buildLinks(4, 4);
+        const trie = buildTrie(dictionary);
+        return findAllWords(letters, links, trie).length;
+    }
     """
 
     private static let context: JSContext = {
@@ -111,5 +209,31 @@ struct BoardGenerator {
     /// Generate today's 4×4 letter grid.
     static func lettersForToday() -> [String] {
         return lettersForDate(Date())
+    }
+
+    /// Count the number of findable words for a given date.
+    /// Requires the dictionary to be available via SharedDataManager.
+    static func wordCountForDate(_ date: Date) -> Int {
+        guard let dictionary = SharedDataManager.shared.cachedDictionary() else {
+            return 0
+        }
+
+        let cal = Calendar.current
+        let y = cal.component(.year, from: date)
+        let m = cal.component(.month, from: date)
+        let d = cal.component(.day, from: date)
+
+        guard let result = context
+            .objectForKeyedSubscript("wordCount")
+            .call(withArguments: [y, m, d, dictionary]),
+              result.isNumber else {
+            return 0
+        }
+        return Int(result.toInt32())
+    }
+
+    /// Count the number of findable words for today's puzzle.
+    static func wordCountForToday() -> Int {
+        return wordCountForDate(Date())
     }
 }

@@ -14,6 +14,9 @@ public class LinkagramNativePlugin: CAPPlugin, CAPBridgedPlugin {
         CAPPluginMethod(name: "requestNotificationPermission", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "scheduleDailyReminder", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "cancelDailyReminder", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "scheduleStreakReminder", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "cancelStreakReminder", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "cacheDictionary", returnType: CAPPluginReturnPromise),
     ]
 
     /// Sync account-level game state to App Group + iCloud.
@@ -92,7 +95,58 @@ public class LinkagramNativePlugin: CAPPlugin, CAPBridgedPlugin {
         call.resolve(["status": "ok"])
     }
 
+    /// Schedule a streak-at-risk reminder at 9 PM tonight.
+    @objc func scheduleStreakReminder(_ call: CAPPluginCall) {
+        let streak = call.getInt("streak") ?? 0
+        scheduleStreakReminderInternal(streak: streak)
+        call.resolve(["status": "ok"])
+    }
+
+    /// Cancel the streak-at-risk reminder (e.g. user completed today's puzzle).
+    @objc func cancelStreakReminder(_ call: CAPPluginCall) {
+        UNUserNotificationCenter.current().removePendingNotificationRequests(
+            withIdentifiers: ["streak-reminder"]
+        )
+        call.resolve(["status": "ok"])
+    }
+
+    /// Cache the dictionary word list in the App Group for widget use.
+    @objc func cacheDictionary(_ call: CAPPluginCall) {
+        let words = call.getArray("words", String.self) ?? []
+        SharedDataManager.shared.cacheDictionary(words: words)
+        call.resolve(["status": "ok"])
+    }
+
     // MARK: - Private
+
+    private func scheduleStreakReminderInternal(streak: Int) {
+        let content = UNMutableNotificationContent()
+        content.title = "Linkagram"
+        content.body = "Don't lose your \(streak) day streak! Today's puzzle is waiting."
+        content.sound = .default
+
+        // Fire at 9 PM local time tonight
+        var dateComponents = DateComponents()
+        dateComponents.hour = 21
+        dateComponents.minute = 0
+
+        let trigger = UNCalendarNotificationTrigger(
+            dateMatching: dateComponents,
+            repeats: false
+        )
+
+        let request = UNNotificationRequest(
+            identifier: "streak-reminder",
+            content: content,
+            trigger: trigger
+        )
+
+        UNUserNotificationCenter.current().add(request) { error in
+            if let error = error {
+                print("Failed to schedule streak reminder: \(error)")
+            }
+        }
+    }
 
     private func scheduleDailyReminderInternal() {
         let content = UNMutableNotificationContent()
