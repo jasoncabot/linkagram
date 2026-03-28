@@ -71,6 +71,14 @@ A new puzzle is generated each day based on the date, so every player gets the s
 
 The project owner is the sole arbiter of which words are valid. The dictionary (`public/data/small.json`) is a curated list — not every English word is included. This is intentional: a smaller dictionary makes the game more completable and fun. Do not add words to the dictionary without explicit approval.
 
+## Versioning
+
+The app version must be kept in sync across two files:
+- `package.json` → `"version"` (used by Vite build for `__APP_VERSION__`, shown in settings UI)
+- `ios/App/App.xcodeproj/project.pbxproj` → `MARKETING_VERSION` (shown in App Store / iOS settings)
+
+When bumping the version, update **both** files. The pbxproj has `MARKETING_VERSION` in multiple build configuration blocks (Debug + Release for both app and widget targets) — update all occurrences.
+
 ## Development
 
 ```

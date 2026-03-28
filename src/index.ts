@@ -59,12 +59,26 @@ const loadState: (config: LinkagramConfig) => (LinkagramState) = (config: Linkag
     }
     const startedAtString = localStorage.getItem(gameKey("startedAt"));
     const finishedAtString = localStorage.getItem(gameKey("finishedAt"));
+    const savedActiveTimeMs = localStorage.getItem(gameKey("activeTimeMs"));
+
+    // Legacy migration: if no activeTimeMs is stored...
+    // - Completed game: fall back to finishedAt - startedAt (wall clock)
+    // - In-progress game: start accumulating from 0 (can't know retroactively)
+    let activeTimeMs = 0;
+    if (savedActiveTimeMs !== null) {
+        activeTimeMs = JSON.parse(savedActiveTimeMs);
+    } else if (finishedAtString && startedAtString) {
+        activeTimeMs = new Date(finishedAtString).getTime() - new Date(startedAtString).getTime();
+    }
+
     return {
         seed: hashCode(key),
         words: new Set(wordsAlreadyFound),
         hints: hints,
         startedAt: startedAtString ? new Date(startedAtString) : new Date(),
         finishedAt: finishedAtString ? new Date(finishedAtString) : null,
+        activeTimeMs,
+        lastActiveAt: finishedAtString ? null : Date.now(),
         hintCount: parseInt(localStorage.getItem(accountKey("hints")) || "30", 10),
         played: (window as any).__screenshotStats?.played ?? JSON.parse(localStorage.getItem(accountKey("played")) || "[]"),
         completed: (window as any).__screenshotStats?.completed ?? JSON.parse(localStorage.getItem(accountKey("completed")) || "[]"),
@@ -76,6 +90,7 @@ const loadState: (config: LinkagramConfig) => (LinkagramState) = (config: Linkag
             localStorage.setItem(gameKey("hints"), serialise(state.hints));
             localStorage.setItem(gameKey("startedAt"), state.startedAt.toString());
             if (state.finishedAt) localStorage.setItem(gameKey("finishedAt"), state.finishedAt.toString());
+            localStorage.setItem(gameKey("activeTimeMs"), JSON.stringify(state.activeTimeMs));
             localStorage.setItem(accountKey("hints"), JSON.stringify(state.hintCount));
             localStorage.setItem(accountKey("played"), JSON.stringify(state.played));
             localStorage.setItem(accountKey("completed"), JSON.stringify(state.completed));
@@ -97,6 +112,7 @@ const loadState: (config: LinkagramConfig) => (LinkagramState) = (config: Linkag
                 if (oldKey.startsWith(accountKey("streak"))) continue;
                 if (oldKey.startsWith(accountKey("maxStreak"))) continue;
                 if (oldKey.startsWith(accountKey("fixes"))) continue;
+                if (oldKey === "hapticsEnabled") continue;
                 toRemove.push(oldKey);
             }
             for (const oldKey of toRemove) {
@@ -127,8 +143,31 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (document.visibilityState === 'visible') {
             const currentPuzzleId = parseInt(keyForToday(), 10);
             if (currentPuzzleId !== loadedPuzzleId) {
+                // Finalise active time for the old puzzle before reloading
+                linkagram.pauseActiveTime();
                 window.location.reload();
             }
         }
     });
+
+    // If the page stays visible past midnight, detect the day change and
+    // finalise active time before reloading for the new puzzle.
+    const scheduleMidnightCheck = () => {
+        const now = new Date();
+        const midnight = new Date(now);
+        midnight.setHours(24, 0, 0, 0);
+        const msUntilMidnight = midnight.getTime() - now.getTime();
+
+        setTimeout(() => {
+            const currentPuzzleId = parseInt(keyForToday(), 10);
+            if (currentPuzzleId !== loadedPuzzleId) {
+                linkagram.pauseActiveTime();
+                window.location.reload();
+            } else {
+                // Edge case: clock might be slightly off, try again shortly
+                scheduleMidnightCheck();
+            }
+        }, msUntilMidnight + 500); // +500ms buffer to ensure we're past midnight
+    };
+    scheduleMidnightCheck();
 });

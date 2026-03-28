@@ -48,6 +48,8 @@ interface LinkagramState {
   hints: Map<string, Set<number>>;
   startedAt: Date;
   finishedAt: Date | null;
+  activeTimeMs: number;
+  lastActiveAt: number | null;
   hintCount: number;
   played: string[];
   completed: string[];
@@ -395,9 +397,29 @@ export default class Linkagram {
       .getElementById("show-hints")
       ?.addEventListener("click", this.showHintModal);
 
+    // Menu button + modal
     document
-      .getElementById("how-to-play-button")
+      .getElementById("menu-button")
+      ?.addEventListener("click", this.showModal("menu-modal"));
+    document
+      .getElementById("menu-modal-background")
+      ?.addEventListener("click", this.hideModal("menu-modal"));
+
+    // Menu items → open sub-modals (stacked on top of menu)
+    document
+      .getElementById("menu-how-to-play")
       ?.addEventListener("click", this.showModal("how-to-play-modal"));
+    document
+      .getElementById("menu-stats")
+      ?.addEventListener("click", this.showModal("stats-modal"));
+    document
+      .getElementById("menu-suggest")
+      ?.addEventListener("click", this.showModal("suggest-modal"));
+    document
+      .getElementById("menu-settings")
+      ?.addEventListener("click", this.showModal("settings-modal"));
+
+    // How to play modal
     document
       .getElementById("how-to-play-modal-close-ok")
       ?.addEventListener("click", this.hideModal("how-to-play-modal"));
@@ -405,6 +427,44 @@ export default class Linkagram {
       .getElementById("how-to-play-modal-background")
       ?.addEventListener("click", this.hideModal("how-to-play-modal"));
 
+    this.initCarousel();
+
+    // Settings modal
+    document
+      .getElementById("settings-modal-background")
+      ?.addEventListener("click", this.hideModal("settings-modal"));
+
+    const versionEl = document.getElementById("settings-version");
+    if (versionEl) versionEl.textContent = `v${__APP_VERSION__}`;
+
+    if (isNative()) {
+      const hapticsToggle = document.getElementById("haptics-toggle") as HTMLInputElement | null;
+      if (hapticsToggle) {
+        hapticsToggle.checked = localStorage.getItem("hapticsEnabled") !== "false";
+        hapticsToggle.addEventListener("change", () => {
+          localStorage.setItem("hapticsEnabled", hapticsToggle.checked ? "true" : "false");
+        });
+      }
+    } else {
+      // Hide haptics row on web — not applicable
+      const settingsSection = document.getElementById("settings-section");
+      if (settingsSection) settingsSection.style.display = "none";
+    }
+
+    // Suggest modal
+    document
+      .getElementById("suggest-modal-background")
+      ?.addEventListener("click", this.hideModal("suggest-modal"));
+    document
+      .getElementById("suggest-word-button")
+      ?.addEventListener("click", this.suggestWord);
+    document
+      .getElementById("suggest-word-input")
+      ?.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") this.suggestWord();
+      });
+
+    // Define modal
     document
       .getElementById("define-modal-background")
       ?.addEventListener("click", this.hideModal("define-modal"));
@@ -412,9 +472,7 @@ export default class Linkagram {
       .getElementById("define-modal-close")
       ?.addEventListener("click", this.hideModal("define-modal"));
 
-    document
-      .getElementById("stats-button")
-      ?.addEventListener("click", this.showModal("stats-modal"));
+    // Stats modal
     document
       .getElementById("stats-modal-background")
       ?.addEventListener("click", this.hideModal("stats-modal"));
@@ -426,10 +484,7 @@ export default class Linkagram {
           // if you've completed it
           let text = `Found ${this.state.words.size} / ${this.wordList.words.size}`;
           if (this.state.words.size === this.wordList.words.size) {
-            const finished = this.state.finishedAt!;
-            const started = this.state.startedAt;
-
-            const elapsed = finished.getTime() - started.getTime();
+            const elapsed = this.state.activeTimeMs;
 
             const hours = Math.floor((elapsed % 86400000) / 3600000);
             const minutes = Math.round(
@@ -556,6 +611,39 @@ export default class Linkagram {
           sheet.classList.remove("open");
         });
       }
+    }
+
+    // Track active time: pause when hidden, resume when visible.
+    // visibilitychange fires on both web (tab switch) and iOS (app background/foreground
+    // in WKWebView), so a single listener covers both platforms.
+    document.addEventListener("visibilitychange", () => {
+      if (this.state.finishedAt) return; // game already complete, nothing to track
+      if (document.visibilityState === "hidden") {
+        this.pauseActiveTime();
+      } else {
+        this.resumeActiveTime();
+      }
+    });
+  };
+
+  pauseActiveTime = () => {
+    if (this.state.lastActiveAt !== null) {
+      this.state.activeTimeMs += Date.now() - this.state.lastActiveAt;
+      this.state.lastActiveAt = null;
+      this.state.save(this.state);
+    }
+  };
+
+  resumeActiveTime = () => {
+    if (this.state.lastActiveAt === null) {
+      this.state.lastActiveAt = Date.now();
+    }
+  };
+
+  finaliseActiveTime = () => {
+    if (this.state.lastActiveAt !== null) {
+      this.state.activeTimeMs += Date.now() - this.state.lastActiveAt;
+      this.state.lastActiveAt = null;
     }
   };
 
@@ -723,7 +811,7 @@ export default class Linkagram {
 
     try {
       const result = await fetch(
-        `https://api.dictionaryapi.dev/api/v2/entries/en/${word}`
+        `/api/define/${word}`
       );
       const entry = (await result.json()) as [
         {
@@ -755,8 +843,123 @@ export default class Linkagram {
     }
   };
 
+  initCarousel = () => {
+    const track = document.getElementById("carousel-track");
+    const dots = document.querySelectorAll<HTMLButtonElement>(".carousel-dot");
+    const modal = document.getElementById("how-to-play-modal");
+    if (!track || !dots.length || !modal) return;
+
+    const slides = track.querySelectorAll(".carousel-slide");
+    let current = 0;
+    let startX = 0;
+    let autoTimer: ReturnType<typeof setInterval> | null = null;
+
+    const goTo = (index: number) => {
+      current = Math.max(0, Math.min(index, slides.length - 1));
+      track.style.transform = `translateX(-${current * 100}%)`;
+      dots.forEach((d, i) => d.classList.toggle("active", i === current));
+    };
+
+    // Dot clicks
+    dots.forEach((dot) => {
+      dot.addEventListener("click", () => {
+        goTo(parseInt(dot.dataset.index || "0", 10));
+        resetAuto();
+      });
+    });
+
+    // Touch swipe
+    track.addEventListener("touchstart", (e) => {
+      startX = e.touches[0].clientX;
+    }, { passive: true });
+
+    track.addEventListener("touchend", (e) => {
+      const dx = e.changedTouches[0].clientX - startX;
+      if (Math.abs(dx) > 40) {
+        goTo(current + (dx < 0 ? 1 : -1));
+        resetAuto();
+      }
+    });
+
+    // Auto-advance every 10s, only while modal is open
+    const startAuto = () => {
+      if (autoTimer) return;
+      autoTimer = setInterval(() => {
+        goTo((current + 1) % slides.length);
+      }, 10000);
+    };
+    const stopAuto = () => {
+      if (autoTimer) { clearInterval(autoTimer); autoTimer = null; }
+    };
+    const resetAuto = () => {
+      stopAuto();
+      startAuto();
+    };
+
+    // Observe modal open/close to start/stop the timer
+    const observer = new MutationObserver(() => {
+      if (modal.classList.contains("open")) {
+        startAuto();
+      } else {
+        stopAuto();
+      }
+    });
+    observer.observe(modal, { attributes: true, attributeFilter: ["class"] });
+  };
+
+  suggestWord = async () => {
+    const input = document.getElementById("suggest-word-input") as HTMLInputElement | null;
+    const feedback = document.getElementById("suggest-word-feedback");
+    const button = document.getElementById("suggest-word-button") as HTMLButtonElement | null;
+    if (!input || !feedback || !button) return;
+
+    const word = input.value.toLowerCase().trim();
+    if (!word || !/^[a-z]{2,16}$/.test(word)) {
+      feedback.textContent = "Please enter a word (2–16 letters)";
+      feedback.className = "suggest-word-feedback error";
+      return;
+    }
+
+    button.disabled = true;
+    button.classList.add("loading");
+    feedback.textContent = "";
+    feedback.className = "suggest-word-feedback";
+
+    try {
+      const res = await fetch("/api/suggest", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ word }),
+      });
+      const data = await res.json() as { status: string };
+
+      const messages: Record<string, { text: string; cls: string }> = {
+        created: { text: "Thanks! Your suggestion has been submitted for review", cls: "success" },
+        already_exists: { text: "That word is already in the dictionary!", cls: "info" },
+        already_suggested: { text: "That word has already been suggested", cls: "info" },
+        no_definition: { text: "We couldn't find a definition for that word", cls: "error" },
+        invalid: { text: "Please enter a word (2–16 letters)", cls: "error" },
+      };
+
+      const msg = messages[data.status] || { text: "Something went wrong, please try again", cls: "error" };
+      feedback.textContent = msg.text;
+      feedback.className = `suggest-word-feedback ${msg.cls}`;
+
+      if (data.status === "created") {
+        input.value = "";
+      }
+    } catch {
+      feedback.textContent = "Something went wrong, please try again";
+      feedback.className = "suggest-word-feedback error";
+    } finally {
+      button.disabled = false;
+      button.classList.remove("loading");
+    }
+  };
+
   haptic = async (style: 'light' | 'medium' | 'heavy' | 'success' | 'error') => {
     if (!isNative()) return;
+    if (localStorage.getItem("hapticsEnabled") === "false") return;
     try {
       const { Haptics, ImpactStyle, NotificationType } = await import('@capacitor/haptics');
       if (style === 'success') {
@@ -901,6 +1104,7 @@ export default class Linkagram {
     // if we haven't already recorded the fact we completed this game then do it now
     if (!this.state.completed.includes(key)) {
       this.state.finishedAt = new Date();
+      this.finaliseActiveTime();
       this.state.completed.push(key);
       this.state.streak += 1;
       if (this.state.streak > this.state.maxStreak) {
@@ -917,8 +1121,7 @@ export default class Linkagram {
         },
         body: JSON.stringify({
           hintsRemaining: this.state.hintCount,
-          timeTaken:
-            this.state.finishedAt.getTime() - this.state.startedAt.getTime(),
+          timeTaken: this.state.activeTimeMs,
           streak: this.state.streak,
           maxStreak: this.state.maxStreak,
         } as LinkagramStatRequest),

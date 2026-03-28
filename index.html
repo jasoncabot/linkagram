@@ -52,11 +52,8 @@
 
   <div class="app">
     <header class="app-header" id="button-container">
-      <button id="stats-button" class="icon-btn" aria-label="Stats">
-        <svg viewBox="0 0 24 24"><path d="M6 20h2V10H6v10zm4 0h2V4h-2v16zm4 0h2v-8h-2v8z"/></svg>
-      </button>
-      <button id="how-to-play-button" class="icon-btn" aria-label="How to play">
-        <svg viewBox="0 0 24 24"><path d="M11 18h2v-2h-2v2zm1-16C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm0-14c-2.21 0-4 1.79-4 4h2c0-1.1.9-2 2-2s2 .9 2 2c0 2-3 1.75-3 5h2c0-2.25 3-2.5 3-5 0-2.21-1.79-4-4-4z"/></svg>
+      <button id="menu-button" class="icon-btn" aria-label="Menu">
+        <svg viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 00.12-.61l-1.92-3.32a.488.488 0 00-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.44.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.07.62-.07.94s.02.64.07.94l-2.03 1.58a.49.49 0 00-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
       </button>
     </header>
 
@@ -117,7 +114,7 @@
       <h1>Hints</h1>
       <p>Show the word list by selecting the number of found and total words</p>
       <p>Use hints by selecting an unknown word from the word list to reveal a single letter</p>
-      <p>You have <span id="hint-count">0</span> hints remaining. You can buy 12 more for <span id="hint-price">99p</span> as a nice thing to do 😊</p>
+      <p>You have <span id="hint-count">0</span> hints remaining. You get topped up to 4 hints each day. You can also buy 12 more for <span id="hint-price">99p</span> as a nice thing to do 😊</p>
       <div id="get-hints-pay">
         <button id="payment-request-loading" class="btn btn-primary btn-fullwidth loading" onclick="alert('Try adding a payment method to your browser')">How do I get more hints?</button>
         <div id="payment-request-button"></div>
@@ -130,14 +127,27 @@
     <div class="modal-background" id="how-to-play-modal-background"></div>
     <div class="modal-content" id="how-to-play-modal-content">
       <h1>How to Play</h1>
-      <ul>
-        <li>Swipe to make valid words</li>
-        <li>Letters must be linked together</li>
-        <li>Each letter can be used once</li>
-        <li>Find all the words</li>
-        <li>Use hints if you are stuck</li>
-        <li>Select an unknown word to use a hint</li>
-      </ul>
+      <div class="carousel" id="how-to-play-carousel">
+        <div class="carousel-track" id="carousel-track">
+          <div class="carousel-slide">
+            <img src="/assets/help/finding-words.gif" alt="Finding words by swiping" />
+            <p>Swipe across linked letters to form words</p>
+          </div>
+          <div class="carousel-slide">
+            <img src="/assets/help/using-hints.gif" alt="Using hints" />
+            <p>Stuck? Use hints to reveal letters</p>
+          </div>
+          <div class="carousel-slide">
+            <img src="/assets/help/completing-puzzle.gif" alt="Completing the puzzle" />
+            <p>Find all the words to complete the puzzle</p>
+          </div>
+        </div>
+        <div class="carousel-dots" id="carousel-dots">
+          <button class="carousel-dot active" data-index="0"></button>
+          <button class="carousel-dot" data-index="1"></button>
+          <button class="carousel-dot" data-index="2"></button>
+        </div>
+      </div>
       <div style="display:flex;justify-content:center;gap:0.75rem">
         <button id="how-to-play-modal-close-ok" class="btn btn-primary">
           <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg>
@@ -148,6 +158,20 @@
           <span>Hints</span>
         </button>
       </div>
+    </div>
+  </div>
+
+  <!-- Suggest a word modal -->
+  <div class="modal" id="suggest-modal">
+    <div class="modal-background" id="suggest-modal-background"></div>
+    <div class="modal-content" id="suggest-modal-content">
+      <h1>Suggest a Word</h1>
+      <p>Missing a word from the dictionary? Suggest it and we'll review it.</p>
+      <div class="suggest-word-input">
+        <input type="text" id="suggest-word-input" placeholder="Enter a word" maxlength="16" autocomplete="off" autocapitalize="none" />
+        <button id="suggest-word-button" class="btn btn-primary">Suggest</button>
+      </div>
+      <div id="suggest-word-feedback" class="suggest-word-feedback"></div>
     </div>
   </div>
 
@@ -182,6 +206,49 @@
           <span>Share</span>
         </button>
       </div>
+    </div>
+  </div>
+
+  <!-- Menu modal -->
+  <div class="modal" id="menu-modal">
+    <div class="modal-background" id="menu-modal-background"></div>
+    <div class="modal-content" id="menu-modal-content">
+      <nav class="menu-list">
+        <button class="menu-item" id="menu-how-to-play">
+          <svg viewBox="0 0 24 24"><path d="M11 18h2v-2h-2v2zm1-16C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm0-14c-2.21 0-4 1.79-4 4h2c0-1.1.9-2 2-2s2 .9 2 2c0 2-3 1.75-3 5h2c0-2.25 3-2.5 3-5 0-2.21-1.79-4-4-4z"/></svg>
+          <span>How to Play</span>
+        </button>
+        <button class="menu-item" id="menu-stats">
+          <svg viewBox="0 0 24 24"><path d="M6 20h2V10H6v10zm4 0h2V4h-2v16zm4 0h2v-8h-2v8z"/></svg>
+          <span>Stats</span>
+        </button>
+        <button class="menu-item" id="menu-suggest">
+          <svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+          <span>Suggest a Word</span>
+        </button>
+        <button class="menu-item" id="menu-settings">
+          <svg viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 00.12-.61l-1.92-3.32a.488.488 0 00-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.44.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.07.62-.07.94s.02.64.07.94l-2.03 1.58a.49.49 0 00-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
+          <span>Settings</span>
+        </button>
+      </nav>
+    </div>
+  </div>
+
+  <!-- Settings modal -->
+  <div class="modal" id="settings-modal">
+    <div class="modal-background" id="settings-modal-background"></div>
+    <div class="modal-content" id="settings-modal-content">
+      <h1>Settings</h1>
+      <div id="settings-section" class="settings-section">
+        <div class="settings-row">
+          <span>Haptics</span>
+          <label class="toggle">
+            <input type="checkbox" id="haptics-toggle" checked />
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+      </div>
+      <div class="settings-version" id="settings-version"></div>
     </div>
   </div>
 

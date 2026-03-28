@@ -12,6 +12,9 @@ export interface Env {
   ANALYTICS: AnalyticsEngineDataset;
   ACCOUNT_ID: string;
   API_TOKEN: string;
+  GITHUB_TOKEN: string;
+  SUGGESTIONS: KVNamespace;
+  DEFINITIONS: KVNamespace;
 }
 
 export async function onRequest(context: {
@@ -170,6 +173,8 @@ const boardAndSolutionsForToday: () => {
     hintCount: 0,
     startedAt: new Date(),
     finishedAt: null,
+    activeTimeMs: 0,
+    lastActiveAt: null,
     hints: new Map<string, Set<number>>(),
     completed: [],
     maxStreak: 0,
