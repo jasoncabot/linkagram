@@ -100,11 +100,13 @@ export async function requestNotificationPermissionIfNeeded(streak: number) {
     // Only prompt after completing 2 games in a streak
     if (streak < 2) return;
     // Only ask once — check if we already asked
-    const asked = localStorage.getItem('notificationPermissionAsked');
+    const asked = localStorage.getItem('notificationPermissionAsked_v2');
     if (asked) return;
     try {
-        localStorage.setItem('notificationPermissionAsked', 'true');
-        await LinkagramNative.requestNotificationPermission();
+        const result = await LinkagramNative.requestNotificationPermission();
+        // Only mark as asked after the native prompt actually resolved
+        localStorage.setItem('notificationPermissionAsked_v2', 'true');
+        return result.granted;
     } catch (e) {
         console.warn('Failed to request notification permission:', e);
     }

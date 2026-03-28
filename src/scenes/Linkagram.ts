@@ -249,6 +249,11 @@ export default class Linkagram {
       if (!modal) return;
       modal.classList.remove("open");
       this.currentModals = this.currentModals.filter((m) => m != modal);
+
+      // After dismissing the stats modal post-game, prompt for notification permission
+      if (id === "stats-modal" && this.state.finishedAt && isNative()) {
+        requestNotificationPermissionIfNeeded(this.state.streak);
+      }
     };
   };
 
@@ -1132,7 +1137,6 @@ export default class Linkagram {
         this.syncToNative();
         this.updateWidget("completed");
         cancelStreakReminder();
-        requestNotificationPermissionIfNeeded(this.state.streak);
       }
     }
     this.onStatsUpdated();
