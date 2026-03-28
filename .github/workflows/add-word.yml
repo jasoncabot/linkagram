@@ -1,0 +1,45 @@
+name: Add Word
+
+on:
+  workflow_dispatch:
+    inputs:
+      word:
+        description: 'Word to add to the dictionary'
+        required: true
+        type: string
+
+jobs:
+  add_word:
+    runs-on: ubuntu-latest
+    name: Add Word to Dictionary
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.LINKAGRAM_GITHUB_TOKEN }}
+      - name: Setup Node
+        uses: actions/setup-node@v3
+        with:
+          node-version-file: .nvmrc
+      - name: Validate word input
+        env:
+          WORD: ${{ github.event.inputs.word }}
+        run: |
+          if ! echo "$WORD" | grep -qE '^[a-zA-Z]+$'; then
+            echo "Error: word must contain only letters"
+            exit 1
+          fi
+      - name: Add word to dictionary
+        env:
+          WORD: ${{ github.event.inputs.word }}
+        run: node scripts/add-word.js "$WORD"
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v7
+        with:
+          token: ${{ secrets.LINKAGRAM_GITHUB_TOKEN }}
+          commit-message: "Add word: ${{ github.event.inputs.word }}"
+          branch: "add-word/${{ github.event.inputs.word }}"
+          title: "Add word: ${{ github.event.inputs.word }}"
+          body: "Adds the word **${{ github.event.inputs.word }}** to the dictionary."
+          labels: dictionary
