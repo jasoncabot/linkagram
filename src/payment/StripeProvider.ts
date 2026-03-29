@@ -1,4 +1,5 @@
 import type { PaymentProvider } from './PaymentProvider';
+import { apiUrl } from '../platform';
 import type { Stripe } from '@stripe/stripe-js';
 
 class StripeProvider implements PaymentProvider {
@@ -50,7 +51,7 @@ class StripeProvider implements PaymentProvider {
 
     return new Promise(async (resolve) => {
       try {
-        const response = await fetch('/hint_payment', {
+        const response = await fetch(apiUrl('/hint_payment'), {
           method: 'POST',
           headers: { 'content-type': 'application/json;charset=UTF-8' },
         });

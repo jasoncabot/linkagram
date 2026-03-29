@@ -1,7 +1,7 @@
 import { buildTrie, isPrefix, isWord, TrieNode } from "../trie";
 import { celebrate } from "../confetti";
 import { keyForDate, keyForToday } from "../key";
-import { isNative } from "../platform";
+import { isNative, apiUrl } from "../platform";
 import type { PaymentProvider } from "../payment/PaymentProvider";
 import { Share } from "@capacitor/share";
 import { syncGameStateToNative, updateWidgetData, getCloudState, requestNotificationPermissionIfNeeded, scheduleStreakReminder, cancelStreakReminder, cacheDictionary } from "../native-bridge";
@@ -332,7 +332,7 @@ export default class Linkagram {
         selectedNewLetter =
           this.selectedIndexes.find((i) => i === index) === undefined;
       }
-      firstTile = updateTileSelection(e.clientX, e.clientY, false);
+      firstTile = updateTileSelection(e.clientX, e.clientY, false) ?? undefined;
     });
     board.addEventListener("pointermove", (e: PointerEvent) => {
       e.preventDefault();
@@ -816,7 +816,7 @@ export default class Linkagram {
 
     try {
       const result = await fetch(
-        `/api/define/${word}`
+        apiUrl(`/api/define/${word}`)
       );
       const entry = (await result.json()) as [
         {
@@ -931,7 +931,7 @@ export default class Linkagram {
     feedback.className = "suggest-word-feedback";
 
     try {
-      const res = await fetch("/api/suggest", {
+      const res = await fetch(apiUrl("/api/suggest"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ word }),
@@ -1119,7 +1119,7 @@ export default class Linkagram {
       this.state.save(this.state);
 
       // submit the stats to the server
-      fetch(`/stats`, {
+      fetch(apiUrl(`/stats`), {
         method: "POST",
         headers: {
           "content-type": "application/json;charset=UTF-8",
