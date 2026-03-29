@@ -25,6 +25,40 @@ export async function onRequest(context: {
   const { request, next, env } = context;
   const { pathname, origin } = new URL(request.url);
 
+  const requestOrigin = request.headers.get("Origin") ?? "";
+  const isCapacitor = requestOrigin === "capacitor://localhost";
+
+  // Handle CORS preflight for native app requests
+  if (isCapacitor && request.method === "OPTIONS") {
+    return new Response(null, {
+      status: 204,
+      headers: {
+        "Access-Control-Allow-Origin": "capacitor://localhost",
+        "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+        "Access-Control-Allow-Headers": "Content-Type",
+      },
+    });
+  }
+
+  const response = await handleRequest(pathname, origin, request, env, context, next);
+
+  if (isCapacitor) {
+    const corsResponse = new Response(response.body, response);
+    corsResponse.headers.set("Access-Control-Allow-Origin", "capacitor://localhost");
+    return corsResponse;
+  }
+
+  return response;
+}
+
+async function handleRequest(
+  pathname: string,
+  origin: string,
+  request: Request,
+  env: Env,
+  context: { request: Request; next: () => Promise<Response>; env: Env },
+  next: () => Promise<Response>
+): Promise<Response> {
   // Apple requires AASA to be served as application/json with no redirects
   if (pathname === "/.well-known/apple-app-site-association") {
     const asset = await env.ASSETS.fetch(context.request.url);
