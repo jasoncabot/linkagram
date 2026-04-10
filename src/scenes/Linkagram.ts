@@ -522,14 +522,14 @@ export default class Linkagram {
           if (isNative()) {
             await Share.share({
               title: "Linkagram",
-              text: text,
+              text: `${text}\n`,
               url: shareUrl,
               dialogTitle: "Share your results",
             });
           } else if (navigator.share) {
             await navigator.share({
               title: "Linkagram",
-              text: text,
+              text: `${text}\n`,
               url: shareUrl,
             });
           } else {
