@@ -50,7 +50,8 @@ export default defineConfig(({ mode }) => ({
         display: "standalone"
       },
       workbox: {
-        globPatterns: ['**/*.{js,css,html,ico,png,svg,json,txt,xml,woff,woff2}']
+        globPatterns: ['**/*.{js,css,html,ico,png,svg,json,txt,xml,woff,woff2}'],
+        ignoreURLParametersMatching: [/^native$/]
       }
     })
   ],
