@@ -451,6 +451,15 @@ export default class Linkagram {
     if (versionEl) versionEl.textContent = `v${__APP_VERSION__}`;
 
     if (isNative()) {
+      const globalStatsLink = document.getElementById("global-stats-link");
+      if (globalStatsLink) {
+        globalStatsLink.addEventListener("click", async (e) => {
+          e.preventDefault();
+          const { Browser } = await import('@capacitor/browser');
+          await Browser.open({ url: "https://linkagram.jasoncabot.me/stats?native=1" });
+        });
+      }
+
       const hapticsToggle = document.getElementById("haptics-toggle") as HTMLInputElement | null;
       if (hapticsToggle) {
         hapticsToggle.checked = localStorage.getItem("hapticsEnabled") !== "false";

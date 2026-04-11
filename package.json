@@ -38,6 +38,7 @@
     "wrangler": "^3.71.0"
   },
   "dependencies": {
+    "@capacitor/browser": "^8.0.3",
     "@capacitor/core": "^8.2.0",
     "@capacitor/haptics": "^8.0.1",
     "@capacitor/ios": "^8.2.0",

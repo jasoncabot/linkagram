@@ -5,6 +5,8 @@ import Capacitor
 class ViewController: CAPBridgeViewController {
 
     override func capacitorDidLoad() {
+        bridge?.registerPluginInstance(LinkagramNativePlugin())
+
         guard ProcessInfo.processInfo.arguments.contains("-screenshotMode") else {
             return
         }

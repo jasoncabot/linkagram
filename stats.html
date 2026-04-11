@@ -236,6 +236,11 @@
       </div>
     </div>
   </div>
+  <script>
+    if (new URLSearchParams(window.location.search).get('native') === '1') {
+      document.querySelector('.back-link').style.display = 'none';
+    }
+  </script>
   <script type="module" src="/src/stats.ts"></script>
 </body>
 </html>
