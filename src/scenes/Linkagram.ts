@@ -539,15 +539,13 @@ export default class Linkagram {
           if (isNative()) {
             await Share.share({
               title: "Linkagram",
-              text: `${text}\n`,
-              url: shareUrl,
+              text: `${text}\n${shareUrl}`,
               dialogTitle: "Share your results",
             });
           } else if (navigator.share) {
             await navigator.share({
               title: "Linkagram",
-              text: `${text}\n`,
-              url: shareUrl,
+              text: `${text}\n${shareUrl}`,
             });
           } else {
             await navigator.clipboard.writeText(`${text}\n${shareUrl}`);
