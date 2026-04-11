@@ -20,8 +20,8 @@ You can change a few things by specifying URL parameters.
 
 ```
 git clone ...
-npm install
-npm run dev
+yarn install
+yarn dev
 ```
 
 ## iOS App
@@ -29,7 +29,7 @@ npm run dev
 The game ships as a native iOS app via [Capacitor](https://capacitorjs.com), wrapping the same web UI in a WKWebView. The entire `dist/` is bundled into the app binary, so it works fully offline from first launch.
 
 ```
-npm run ios          # Build, sync, and open in Xcode
+yarn ios              # Build, sync, and open in Xcode
 ```
 
 Hint purchases use StoreKit IAP on iOS (vs Stripe on web). Haptic feedback is provided on tile selection, valid/invalid words, and game completion.

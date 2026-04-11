@@ -82,13 +82,13 @@ When bumping the version, update **both** files. The pbxproj has `MARKETING_VERS
 ## Development
 
 ```
-npm install
-npm run dev          # Start dev server (web)
-npm run build        # Production web build (with PWA)
-npm run build:ios    # Production iOS build (no PWA)
-npm run cap:sync     # Sync web assets to iOS project
-npm run ios          # Build, sync, and open in Xcode
-npm run word <w>     # Add a word to the dictionary (requires approval)
+yarn install
+yarn dev             # Start dev server (web)
+yarn build           # Production web build (with PWA)
+yarn build:ios       # Production iOS build (no PWA)
+yarn cap:sync        # Sync web assets to iOS project
+yarn ios             # Build, sync, and open in Xcode
+yarn word <w>        # Add a word to the dictionary (requires approval)
 
 bundle exec fastlane ios beta     # Build and upload to TestFlight
 bundle exec fastlane ios release  # Build, upload, and submit for review

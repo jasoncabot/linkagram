@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Linkagram — Stats Dashboard</title>
+  <meta name="description" content="Aggregated completion stats for the Linkagram daily word puzzle.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg-gradient: linear-gradient(135deg, #0a0a1a, #1a0a2e, #0d1b2a, #0a0a1a);
+      --glass-bg: rgba(255, 255, 255, 0.05);
+      --glass-bg-hover: rgba(255, 255, 255, 0.08);
+      --glass-border: rgba(255, 255, 255, 0.15);
+      --text-primary: rgba(255, 255, 255, 0.9);
+      --text-secondary: rgba(255, 255, 255, 0.6);
+      --text-dim: rgba(255, 255, 255, 0.4);
+      --glow-cyan: #00e5ff;
+      --glow-cyan-rgb: 0, 229, 255;
+      --glow-green: #4ade80;
+      --glow-green-rgb: 74, 222, 128;
+      --glow-yellow: #f0d56e;
+      --glow-yellow-rgb: 240, 213, 110;
+      --font-display: 'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      --font-system: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    }
+
+    body {
+      font-family: var(--font-system);
+      background: var(--bg-gradient);
+      background-attachment: fixed;
+      color: var(--text-primary);
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 2rem 1rem 4rem;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+
+    header h1 {
+      font-family: var(--font-display);
+      font-size: 1.75rem;
+      font-weight: 700;
+      margin-bottom: 0.25rem;
+    }
+
+    header h1 a {
+      color: var(--text-primary);
+      text-decoration: none;
+    }
+
+    header h1 a:hover {
+      color: var(--glow-cyan);
+    }
+
+    header p {
+      color: var(--text-secondary);
+      font-size: 0.875rem;
+    }
+
+    .section-title {
+      font-family: var(--font-display);
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 0.75rem;
+    }
+
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 0.75rem;
+      margin-bottom: 2rem;
+    }
+
+    .card {
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: 12px;
+      padding: 1rem;
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      transition: background 0.2s;
+    }
+
+    .card:hover {
+      background: var(--glass-bg-hover);
+    }
+
+    .card .label {
+      font-size: 0.75rem;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 0.25rem;
+    }
+
+    .card .value {
+      font-family: var(--font-display);
+      font-size: 1.5rem;
+      font-weight: 700;
+    }
+
+    .card .value.cyan { color: var(--glow-cyan); }
+    .card .value.green { color: var(--glow-green); }
+    .card .value.yellow { color: var(--glow-yellow); }
+
+    .chart-container {
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: 12px;
+      padding: 1rem;
+      margin-bottom: 2rem;
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+    }
+
+    .chart-container h3 {
+      font-family: var(--font-display);
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      margin-bottom: 0.75rem;
+    }
+
+    .chart-container canvas {
+      width: 100% !important;
+      max-height: 280px;
+    }
+
+    #loading {
+      text-align: center;
+      padding: 4rem 1rem;
+      color: var(--text-secondary);
+    }
+
+    #error {
+      text-align: center;
+      padding: 2rem 1rem;
+      color: var(--glow-yellow);
+      display: none;
+    }
+
+    #dashboard {
+      display: none;
+    }
+
+    .back-link {
+      display: inline-block;
+      color: var(--text-dim);
+      text-decoration: none;
+      font-size: 0.875rem;
+      margin-bottom: 1rem;
+    }
+
+    .back-link:hover {
+      color: var(--glow-cyan);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <a href="/" class="back-link">← Back to game</a>
+
+    <header>
+      <h1><a href="/">Linkagram</a></h1>
+      <p>Completion Stats</p>
+    </header>
+
+    <div id="loading">Loading stats…</div>
+    <div id="error">Unable to load stats. Try refreshing.</div>
+
+    <div id="dashboard">
+      <h2 class="section-title">Today's Puzzle</h2>
+      <div class="cards">
+        <div class="card">
+          <div class="label">Completions</div>
+          <div class="value cyan" id="today-completions">—</div>
+        </div>
+        <div class="card">
+          <div class="label">Median Time</div>
+          <div class="value green" id="today-median">—</div>
+        </div>
+        <div class="card">
+          <div class="label">90th Percentile</div>
+          <div class="value green" id="today-p90">—</div>
+        </div>
+        <div class="card">
+          <div class="label">Avg Hints Used</div>
+          <div class="value yellow" id="today-hints">—</div>
+        </div>
+      </div>
+
+      <h2 class="section-title">All Time</h2>
+      <div class="cards">
+        <div class="card">
+          <div class="label">Total Completions</div>
+          <div class="value cyan" id="all-completions">—</div>
+        </div>
+        <div class="card">
+          <div class="label">Median Time</div>
+          <div class="value green" id="all-median">—</div>
+        </div>
+        <div class="card">
+          <div class="label">90th Percentile</div>
+          <div class="value green" id="all-p90">—</div>
+        </div>
+        <div class="card">
+          <div class="label">Best Streak Reported</div>
+          <div class="value yellow" id="all-streak">—</div>
+        </div>
+      </div>
+
+      <h2 class="section-title">Last 30 Days</h2>
+      <div class="chart-container">
+        <h3>Daily Completions</h3>
+        <canvas id="chart-completions"></canvas>
+      </div>
+      <div class="chart-container">
+        <h3>Median Completion Time</h3>
+        <canvas id="chart-time"></canvas>
+      </div>
+    </div>
+  </div>
+  <script type="module" src="/src/stats.ts"></script>
+</body>
+</html>

@@ -10,7 +10,7 @@
     "build": "vite build",
     "build:ios": "vite build --mode capacitor",
     "cap:sync": "npx cap sync ios",
-    "ios": "npm run build:ios && npm run cap:sync && npx cap open ios",
+    "ios": "yarn build:ios && yarn cap:sync && npx cap open ios",
     "serve": "vite preview"
   },
   "repository": {
@@ -44,6 +44,7 @@
     "@capacitor/share": "^8.0.1",
     "@capacitor/status-bar": "^8.0.1",
     "@types/webfontloader": "^1.6.33",
+    "chart.js": "^4.5.1",
     "cordova-plugin-purchase": "^13.13.1",
     "sass": "^1.45.0"
   }

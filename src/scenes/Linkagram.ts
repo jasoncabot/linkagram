@@ -8,6 +8,7 @@ import { syncGameStateToNative, updateWidgetData, getCloudState, requestNotifica
 
 export interface LinkagramStatRequest {
   hintsRemaining: number;
+  hintsUsed: number;
   timeTaken: number;
   streak: number;
   maxStreak: number;
@@ -1125,6 +1126,10 @@ export default class Linkagram {
       this.state.save(this.state);
 
       // submit the stats to the server
+      let hintsUsed = 0;
+      this.state.hints.forEach((hints) => {
+        hintsUsed += hints.size;
+      });
       fetch(apiUrl(`/stats`), {
         method: "POST",
         headers: {
@@ -1132,6 +1137,7 @@ export default class Linkagram {
         },
         body: JSON.stringify({
           hintsRemaining: this.state.hintCount,
+          hintsUsed,
           timeTaken: this.state.activeTimeMs,
           streak: this.state.streak,
           maxStreak: this.state.maxStreak,

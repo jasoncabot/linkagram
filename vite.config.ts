@@ -1,10 +1,19 @@
 import { defineConfig } from 'vite';
+import { resolve } from 'path';
 import { VitePWA } from "vite-plugin-pwa"
 import { version } from './package.json';
 
 export default defineConfig(({ mode }) => ({
   define: {
     __APP_VERSION__: JSON.stringify(version),
+  },
+  build: {
+    rollupOptions: {
+      input: {
+        main: resolve(__dirname, 'index.html'),
+        stats: resolve(__dirname, 'stats.html'),
+      },
+    },
   },
   plugins: mode === 'capacitor' ? [] : [
     VitePWA({

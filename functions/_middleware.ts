@@ -80,12 +80,13 @@ async function handleRequest(
     // read the hints used and time taken from the request body
     const body = (await request.json()) as LinkagramStatRequest;
     const hintsRemaining = body.hintsRemaining;
+    const hintsUsed = body.hintsUsed ?? 0;
     const timeTaken = body.timeTaken;
     const streak = body.streak;
     const maxStreak = body.maxStreak;
 
     const dataPoint: AnalyticsEngineDataPoint = {
-      doubles: [hintsRemaining, timeTaken, streak, maxStreak],
+      doubles: [hintsRemaining, timeTaken, streak, maxStreak, hintsUsed],
       indexes: [keyForToday()],
     };
 
@@ -95,19 +96,11 @@ async function handleRequest(
       return new Response("ok", { status: 201 });
     }
     return new Response("no-k", { status: 200 });
+  } else if (pathname === "/stats/data" && request.method === "GET") {
+    return handleStatsData(env);
   } else if (pathname === "/stats" && request.method === "GET") {
-    const query =
-      "SELECT quantileWeighted(0.50, double2, _sample_interval) as p50, quantileWeighted(0.90, double2, _sample_interval) as p90 FROM completions";
-    return fetch(
-      `https://api.cloudflare.com/client/v4/accounts/${env.ACCOUNT_ID}/analytics_engine/sql`,
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${env.API_TOKEN}`,
-        },
-        body: query,
-      }
-    );
+    const asset = await env.ASSETS.fetch(new globalThis.Request(`${origin}/stats.html`));
+    return new Response(asset.body, asset);
   } else if (pathname === "/share") {
     const { words, letters } = boardAndSolutionsForToday();
     const wordCount = words.size;
@@ -160,6 +153,97 @@ async function handleRequest(
   }
 
   return next();
+}
+
+async function analyticsQuery(env: Env, sql: string): Promise<any[]> {
+  const resp = await fetch(
+    `https://api.cloudflare.com/client/v4/accounts/${env.ACCOUNT_ID}/analytics_engine/sql`,
+    {
+      method: "POST",
+      headers: { Authorization: `Bearer ${env.API_TOKEN}` },
+      body: sql,
+    }
+  );
+  if (!resp.ok) return [];
+  const text = await resp.text();
+  // Cloudflare Analytics Engine SQL returns CSV-like JSON rows
+  try {
+    const json = JSON.parse(text);
+    return json?.data ?? [];
+  } catch {
+    return [];
+  }
+}
+
+async function handleStatsData(env: Env): Promise<Response> {
+  const today = keyForToday();
+
+  const [allTimeRows, todayRows, dailyRows] = await Promise.all([
+    analyticsQuery(env,
+      `SELECT ` +
+      `SUM(_sample_interval) as completions, ` +
+      `quantileWeighted(0.50)(double2, _sample_interval) as medianTime, ` +
+      `quantileWeighted(0.90)(double2, _sample_interval) as p90Time, ` +
+      `avgWeighted(double1, _sample_interval) as avgHintsRemaining, ` +
+      `avgWeighted(double5, _sample_interval) as avgHintsUsed, ` +
+      `MAX(double4) as maxStreak ` +
+      `FROM completions`
+    ),
+    analyticsQuery(env,
+      `SELECT ` +
+      `SUM(_sample_interval) as completions, ` +
+      `quantileWeighted(0.50)(double2, _sample_interval) as medianTime, ` +
+      `quantileWeighted(0.90)(double2, _sample_interval) as p90Time, ` +
+      `avgWeighted(double5, _sample_interval) as avgHintsUsed ` +
+      `FROM completions WHERE index1 = '${today}'`
+    ),
+    analyticsQuery(env,
+      `SELECT ` +
+      `index1 as date, ` +
+      `SUM(_sample_interval) as completions, ` +
+      `quantileWeighted(0.50)(double2, _sample_interval) as medianTime, ` +
+      `avgWeighted(double5, _sample_interval) as avgHintsUsed ` +
+      `FROM completions ` +
+      `GROUP BY index1 ` +
+      `ORDER BY index1 DESC ` +
+      `LIMIT 30`
+    ),
+  ]);
+
+  const toNum = (v: any) => (v != null ? Number(v) : 0);
+
+  const allTime = allTimeRows[0] ?? {};
+  const todayData = todayRows[0] ?? {};
+
+  const result = {
+    allTime: {
+      completions: toNum(allTime.completions),
+      medianTime: toNum(allTime.medianTime),
+      p90Time: toNum(allTime.p90Time),
+      avgHintsRemaining: toNum(allTime.avgHintsRemaining),
+      avgHintsUsed: toNum(allTime.avgHintsUsed),
+      maxStreak: toNum(allTime.maxStreak),
+    },
+    today: {
+      completions: toNum(todayData.completions),
+      medianTime: toNum(todayData.medianTime),
+      p90Time: toNum(todayData.p90Time),
+      avgHintsUsed: toNum(todayData.avgHintsUsed),
+    },
+    daily: dailyRows.reverse().map((row: any) => ({
+      date: row.date,
+      completions: toNum(row.completions),
+      medianTime: toNum(row.medianTime),
+      avgHintsUsed: toNum(row.avgHintsUsed),
+    })),
+  };
+
+  return new Response(JSON.stringify(result), {
+    headers: {
+      "Content-Type": "application/json",
+      "Cache-Control": "public, max-age=300",
+    },
+  });
 }
 
 class MetaUpdater {
