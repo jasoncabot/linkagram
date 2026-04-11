@@ -4,7 +4,7 @@ import { keyForDate, keyForToday } from "../key";
 import { isNative, apiUrl } from "../platform";
 import type { PaymentProvider } from "../payment/PaymentProvider";
 import { Share } from "@capacitor/share";
-import { syncGameStateToNative, updateWidgetData, getCloudState, requestNotificationPermissionIfNeeded, scheduleStreakReminder, cancelStreakReminder, cacheDictionary } from "../native-bridge";
+import { syncGameStateToNative, updateWidgetData, getCloudState, requestNotificationPermissionIfNeeded, scheduleStreakReminder, cancelStreakReminder, cacheDictionary, loadDictionaryWithRevalidation } from "../native-bridge";
 
 export interface LinkagramStatRequest {
   hintsRemaining: number;
@@ -263,11 +263,17 @@ export default class Linkagram {
       fetch("/data/" + this.config.frequencies),
     ]);
 
-    const words = await wordsResponse.json();
+    const bundledWords = await wordsResponse.json();
     const frequencies = await frequenciesResponse.json();
+
+    // Use a previously-fetched remote copy if available (stale-while-revalidate).
+    // A background fetch runs regardless to freshen localStorage (and the widget
+    // cache) for the next launch.
+    const words = loadDictionaryWithRevalidation(bundledWords);
     this.initialise(words, frequencies);
 
-    // Cache dictionary to App Group so the widget can compute word counts
+    // Seed the native App Group cache from the bundled list on first launch
+    // (loadDictionaryWithRevalidation handles subsequent widget updates).
     if (isNative()) {
       cacheDictionary(words);
     }

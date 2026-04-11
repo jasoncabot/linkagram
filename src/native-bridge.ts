@@ -138,3 +138,38 @@ export async function cacheDictionary(words: string[]) {
         console.warn('Failed to cache dictionary:', e);
     }
 }
+
+const REMOTE_DICTIONARY_URL = 'https://linkagram.jasoncabot.me/data/small.json';
+const REMOTE_DICTIONARY_KEY = 'cachedRemoteDictionary';
+
+/**
+ * Returns the word list using stale-while-revalidate:
+ *   1. Immediately returns a previously-fetched remote copy from localStorage (if any).
+ *   2. Falls back to the provided bundled words if no cached copy exists.
+ *   3. Fires a background fetch; on success, stores the result in localStorage
+ *      (and updates the native App Group cache for the widget) so the next
+ *      launch picks up the fresh list.
+ */
+export function loadDictionaryWithRevalidation(bundledWords: string[]): string[] {
+    const stored = localStorage.getItem(REMOTE_DICTIONARY_KEY);
+    const cachedWords: string[] | null = stored ? JSON.parse(stored) : null;
+
+    // Background revalidation — intentionally not awaited
+    (async () => {
+        try {
+            const response = await fetch(REMOTE_DICTIONARY_URL);
+            if (!response.ok) return;
+            const fresh: unknown = await response.json();
+            if (!Array.isArray(fresh) || fresh.length === 0) return;
+            localStorage.setItem(REMOTE_DICTIONARY_KEY, JSON.stringify(fresh));
+            if (isNative()) {
+                await cacheDictionary(fresh as string[]);
+            }
+        } catch (e) {
+            console.warn('Failed to refresh dictionary from remote:', e);
+        }
+    })();
+
+    return cachedWords ?? bundledWords;
+}
+
