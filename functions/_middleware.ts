@@ -164,13 +164,16 @@ async function analyticsQuery(env: Env, sql: string): Promise<any[]> {
       body: sql,
     }
   );
-  if (!resp.ok) return [];
   const text = await resp.text();
-  // Cloudflare Analytics Engine SQL returns CSV-like JSON rows
+  if (!resp.ok) {
+    console.error(`Analytics Engine query failed (${resp.status}): ${text}`);
+    throw new Error(`Analytics Engine query failed (${resp.status}): ${text}`);
+  }
   try {
     const json = JSON.parse(text);
     return json?.data ?? [];
   } catch {
+    console.error(`Failed to parse Analytics Engine response: ${text}`);
     return [];
   }
 }
@@ -178,37 +181,45 @@ async function analyticsQuery(env: Env, sql: string): Promise<any[]> {
 async function handleStatsData(env: Env): Promise<Response> {
   const today = keyForToday();
 
-  const [allTimeRows, todayRows, dailyRows] = await Promise.all([
-    analyticsQuery(env,
-      `SELECT ` +
-      `SUM(_sample_interval) as completions, ` +
-      `quantileWeighted(0.50)(double2, _sample_interval) as medianTime, ` +
-      `quantileWeighted(0.90)(double2, _sample_interval) as p90Time, ` +
-      `avg(double1) as avgHintsRemaining, ` +
-      `avg(double5) as avgHintsUsed, ` +
-      `MAX(double4) as maxStreak ` +
-      `FROM completions`
-    ),
-    analyticsQuery(env,
-      `SELECT ` +
-      `SUM(_sample_interval) as completions, ` +
-      `quantileWeighted(0.50)(double2, _sample_interval) as medianTime, ` +
-      `quantileWeighted(0.90)(double2, _sample_interval) as p90Time, ` +
-      `avg(double5) as avgHintsUsed ` +
-      `FROM completions WHERE index1 = '${today}'`
-    ),
-    analyticsQuery(env,
-      `SELECT ` +
-      `index1, ` +
-      `SUM(_sample_interval) as completions, ` +
-      `quantileWeighted(0.50)(double2, _sample_interval) as medianTime, ` +
-      `avg(double5) as avgHintsUsed ` +
-      `FROM completions ` +
-      `GROUP BY index1 ` +
-      `ORDER BY index1 DESC ` +
-      `LIMIT 30`
-    ),
-  ]);
+  let allTimeRows: any[], todayRows: any[], dailyRows: any[];
+  try {
+    [allTimeRows, todayRows, dailyRows] = await Promise.all([
+      analyticsQuery(env,
+        `SELECT ` +
+        `SUM(_sample_interval) as completions, ` +
+        `quantileWeighted(0.50)(double2, _sample_interval) as medianTime, ` +
+        `quantileWeighted(0.90)(double2, _sample_interval) as p90Time, ` +
+        `avg(double1) as avgHintsRemaining, ` +
+        `avg(double5) as avgHintsUsed, ` +
+        `MAX(double4) as maxStreak ` +
+        `FROM completions`
+      ),
+      analyticsQuery(env,
+        `SELECT ` +
+        `SUM(_sample_interval) as completions, ` +
+        `quantileWeighted(0.50)(double2, _sample_interval) as medianTime, ` +
+        `quantileWeighted(0.90)(double2, _sample_interval) as p90Time, ` +
+        `avg(double5) as avgHintsUsed ` +
+        `FROM completions WHERE index1 = '${today}'`
+      ),
+      analyticsQuery(env,
+        `SELECT ` +
+        `index1, ` +
+        `SUM(_sample_interval) as completions, ` +
+        `quantileWeighted(0.50)(double2, _sample_interval) as medianTime, ` +
+        `avg(double5) as avgHintsUsed ` +
+        `FROM completions ` +
+        `GROUP BY index1 ` +
+        `ORDER BY index1 DESC ` +
+        `LIMIT 30`
+      ),
+    ]);
+  } catch (e: any) {
+    return new Response(JSON.stringify({ error: e.message }), {
+      status: 500,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
 
   const toNum = (v: any) => (v != null ? Number(v) : 0);
 
@@ -231,7 +242,7 @@ async function handleStatsData(env: Env): Promise<Response> {
       avgHintsUsed: toNum(todayData.avgHintsUsed),
     },
     daily: dailyRows.reverse().map((row: any) => ({
-      date: row.date,
+      date: row.index1,
       completions: toNum(row.completions),
       medianTime: toNum(row.medianTime),
       avgHintsUsed: toNum(row.avgHintsUsed),
