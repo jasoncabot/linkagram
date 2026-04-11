@@ -184,8 +184,8 @@ async function handleStatsData(env: Env): Promise<Response> {
       `SUM(_sample_interval) as completions, ` +
       `quantileWeighted(0.50)(double2, _sample_interval) as medianTime, ` +
       `quantileWeighted(0.90)(double2, _sample_interval) as p90Time, ` +
-      `avgWeighted(double1, _sample_interval) as avgHintsRemaining, ` +
-      `avgWeighted(double5, _sample_interval) as avgHintsUsed, ` +
+      `avg(double1) as avgHintsRemaining, ` +
+      `avg(double5) as avgHintsUsed, ` +
       `MAX(double4) as maxStreak ` +
       `FROM completions`
     ),
@@ -194,15 +194,15 @@ async function handleStatsData(env: Env): Promise<Response> {
       `SUM(_sample_interval) as completions, ` +
       `quantileWeighted(0.50)(double2, _sample_interval) as medianTime, ` +
       `quantileWeighted(0.90)(double2, _sample_interval) as p90Time, ` +
-      `avgWeighted(double5, _sample_interval) as avgHintsUsed ` +
+      `avg(double5) as avgHintsUsed ` +
       `FROM completions WHERE index1 = '${today}'`
     ),
     analyticsQuery(env,
       `SELECT ` +
-      `index1 as date, ` +
+      `index1, ` +
       `SUM(_sample_interval) as completions, ` +
       `quantileWeighted(0.50)(double2, _sample_interval) as medianTime, ` +
-      `avgWeighted(double5, _sample_interval) as avgHintsUsed ` +
+      `avg(double5) as avgHintsUsed ` +
       `FROM completions ` +
       `GROUP BY index1 ` +
       `ORDER BY index1 DESC ` +
