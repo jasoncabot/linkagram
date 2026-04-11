@@ -4,7 +4,7 @@ import { keyForDate, keyForToday } from "../key";
 import { isNative, apiUrl } from "../platform";
 import type { PaymentProvider } from "../payment/PaymentProvider";
 import { Share } from "@capacitor/share";
-import { syncGameStateToNative, updateWidgetData, getCloudState, requestNotificationPermissionIfNeeded, scheduleStreakReminder, cancelStreakReminder, cacheDictionary, loadDictionaryWithRevalidation } from "../native-bridge";
+import { syncGameStateToNative, updateWidgetData, getCloudState, requestNotificationPermissionIfNeeded, scheduleStreakReminder, cancelStreakReminder, loadDictionaryWithRevalidation } from "../native-bridge";
 
 export interface LinkagramStatRequest {
   hintsRemaining: number;
@@ -272,12 +272,6 @@ export default class Linkagram {
     // cache) for the next launch.
     const words = loadDictionaryWithRevalidation(bundledWords);
     this.initialise(words, frequencies);
-
-    // Seed the native App Group cache from the bundled list on first launch
-    // (loadDictionaryWithRevalidation handles subsequent widget updates).
-    if (isNative()) {
-      cacheDictionary(words);
-    }
 
     const isMobile = window.matchMedia("(max-width: 767px)").matches || isNative();
     const wordYOffset = isNative() ? -90 : (isMobile ? -150 : -90);
