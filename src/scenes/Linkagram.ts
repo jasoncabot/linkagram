@@ -285,6 +285,7 @@ export default class Linkagram {
     if (isNative()) {
       const currentWord = document.getElementById("current-word")!;
       currentWord.style.position = "fixed";
+      currentWord.style.zIndex = "10";
     }
 
     // Use circular hit areas so diagonal swipes don't accidentally hit
