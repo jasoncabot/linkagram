@@ -1,0 +1,10 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "linkagram-img",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-04-11",
+  "rules": [
+    { "type": "CompiledWasm", "globs": ["**/*.wasm"] },
+    { "type": "Data", "globs": ["**/*.ttf"] }
+  ]
+}

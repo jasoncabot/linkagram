@@ -1,0 +1,17 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "linkagram",
+  "compatibility_date": "2026-04-11",
+  "pages_build_output_dir": "dist",
+  "services": [
+    { "binding": "IMAGE_GENERATOR", "service": "linkagram-img" },
+    { "binding": "PAYMENT_SERVICE", "service": "linkagram-pay" },
+  ],
+  "analytics_engine_datasets": [
+    { "binding": "ANALYTICS", "dataset": "completions" },
+  ],
+  "kv_namespaces": [
+    { "binding": "SUGGESTIONS", "id": "a76e8697af2b455ea90c010124904f80" },
+    { "binding": "DEFINITIONS", "id": "cdba59d73ef0469bb8906b7220b2f801" },
+  ],
+}

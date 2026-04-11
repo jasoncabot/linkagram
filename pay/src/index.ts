@@ -1,4 +1,4 @@
-import { Stripe } from "stripe";
+import Stripe from "stripe";
 
 export interface Env {
 	STRIPE_SECRET_KEY: string
@@ -21,7 +21,7 @@ export default {
 const createPaymentIntent = async (request: Request, env: Env) => {
 	const stripe = new Stripe(env.STRIPE_SECRET_KEY, {
 		httpClient: Stripe.createFetchHttpClient(),
-		apiVersion: "2022-11-15",
+		apiVersion: "2026-03-25.dahlia",
 		appInfo: {
 			name: "linkagram",
 			version: "1.0.0",

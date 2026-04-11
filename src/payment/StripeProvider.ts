@@ -55,7 +55,7 @@ class StripeProvider implements PaymentProvider {
           method: 'POST',
           headers: { 'content-type': 'application/json;charset=UTF-8' },
         });
-        const clientSecretResponse = await response.json();
+        const clientSecretResponse = (await response.json()) as { secret: string };
         const clientSecret = clientSecretResponse.secret;
 
         paymentRequest.on('paymentmethod', async (ev) => {

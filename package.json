@@ -11,7 +11,8 @@
     "build:ios": "vite build --mode capacitor",
     "cap:sync": "npx cap sync ios",
     "ios": "yarn build:ios && yarn cap:sync && npx cap open ios",
-    "serve": "vite preview"
+    "serve": "vite preview",
+    "cf-typegen": "wrangler types"
   },
   "repository": {
     "type": "git",
@@ -24,29 +25,28 @@
   },
   "homepage": "https://github.com/jasoncabot/linkagram",
   "devDependencies": {
-    "@capacitor/cli": "^8.2.0",
-    "@cloudflare/workers-types": "^4.20221111.1",
-    "@rollup/plugin-alias": "^5.1.0",
-    "@rollup/plugin-commonjs": "^25.0.7",
-    "@rollup/plugin-replace": "^5.0.2",
-    "@stripe/stripe-js": "^2.3.0",
-    "typescript": "^5.3.3",
-    "vite": "^5.0.11",
-    "vite-plugin-pwa": "^0.17.4",
-    "workbox-build": "^7.0.0",
-    "workbox-window": "^7.0.0",
-    "wrangler": "^3.71.0"
+    "@capacitor/cli": "^8.3.0",
+    "@rollup/plugin-alias": "^6.0.0",
+    "@rollup/plugin-commonjs": "^29.0.2",
+    "@rollup/plugin-replace": "^6.0.3",
+    "@stripe/stripe-js": "^9.1.0",
+    "typescript": "^6.0.2",
+    "vite": "^8.0.8",
+    "vite-plugin-pwa": "^1.2.0",
+    "workbox-build": "^7.4.0",
+    "workbox-window": "^7.4.0",
+    "wrangler": "^4.81.1"
   },
   "dependencies": {
     "@capacitor/browser": "^8.0.3",
-    "@capacitor/core": "^8.2.0",
-    "@capacitor/haptics": "^8.0.1",
-    "@capacitor/ios": "^8.2.0",
+    "@capacitor/core": "^8.3.0",
+    "@capacitor/haptics": "^8.0.2",
+    "@capacitor/ios": "^8.3.0",
     "@capacitor/share": "^8.0.1",
-    "@capacitor/status-bar": "^8.0.1",
-    "@types/webfontloader": "^1.6.33",
+    "@capacitor/status-bar": "^8.0.2",
+    "@types/webfontloader": "^1.6.38",
     "chart.js": "^4.5.1",
     "cordova-plugin-purchase": "^13.13.1",
-    "sass": "^1.45.0"
+    "sass": "^1.99.0"
   }
 }

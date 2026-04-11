@@ -3,18 +3,9 @@ import letterDistribution from "./../public/data/letters.json";
 import smallWords from "./../public/data/small.json";
 import { hashCode } from "./../src/hash";
 import Linkagram, { LinkagramStatRequest } from "./../src/scenes/Linkagram";
-import { Request } from "@cloudflare/workers-types";
 
-export interface Env {
-  IMAGE_GENERATOR: Fetcher;
-  PAYMENT_SERVICE: Fetcher;
-  ASSETS: any;
-  ANALYTICS: AnalyticsEngineDataset;
-  ACCOUNT_ID: string;
-  API_TOKEN: string;
-  GITHUB_TOKEN: string;
-  SUGGESTIONS: KVNamespace;
-  DEFINITIONS: KVNamespace;
+export interface Env extends Cloudflare.Env {
+  ASSETS: Fetcher;
 }
 
 export async function onRequest(context: {
@@ -40,11 +31,21 @@ export async function onRequest(context: {
     });
   }
 
-  const response = await handleRequest(pathname, origin, request, env, context, next);
+  const response = await handleRequest(
+    pathname,
+    origin,
+    request,
+    env,
+    context,
+    next,
+  );
 
   if (isCapacitor) {
     const corsResponse = new Response(response.body, response);
-    corsResponse.headers.set("Access-Control-Allow-Origin", "capacitor://localhost");
+    corsResponse.headers.set(
+      "Access-Control-Allow-Origin",
+      "capacitor://localhost",
+    );
     return corsResponse;
   }
 
@@ -57,7 +58,7 @@ async function handleRequest(
   request: Request,
   env: Env,
   context: { request: Request; next: () => Promise<Response>; env: Env },
-  next: () => Promise<Response>
+  next: () => Promise<Response>,
 ): Promise<Response> {
   // Apple requires AASA to be served as application/json with no redirects
   if (pathname === "/.well-known/apple-app-site-association") {
@@ -99,7 +100,9 @@ async function handleRequest(
   } else if (pathname === "/stats/data" && request.method === "GET") {
     return handleStatsData(env);
   } else if (pathname === "/stats" && request.method === "GET") {
-    const asset = await env.ASSETS.fetch(new globalThis.Request(`${origin}/stats.html`));
+    const asset = await env.ASSETS.fetch(
+      new globalThis.Request(`${origin}/stats.html`),
+    );
     return new Response(asset.body, asset);
   } else if (pathname === "/share") {
     const { words, letters } = boardAndSolutionsForToday();
@@ -162,7 +165,7 @@ async function analyticsQuery(env: Env, sql: string): Promise<any[]> {
       method: "POST",
       headers: { Authorization: `Bearer ${env.API_TOKEN}` },
       body: sql,
-    }
+    },
   );
   const text = await resp.text();
   if (!resp.ok) {
@@ -184,34 +187,37 @@ async function handleStatsData(env: Env): Promise<Response> {
   let allTimeRows: any[], todayRows: any[], dailyRows: any[];
   try {
     [allTimeRows, todayRows, dailyRows] = await Promise.all([
-      analyticsQuery(env,
+      analyticsQuery(
+        env,
         `SELECT ` +
-        `SUM(_sample_interval) as completions, ` +
-        `quantileWeighted(0.50)(double2, _sample_interval) as medianTime, ` +
-        `quantileWeighted(0.90)(double2, _sample_interval) as p90Time, ` +
-        `avg(double1) as avgHintsRemaining, ` +
-        `avg(double5) as avgHintsUsed, ` +
-        `MAX(double4) as maxStreak ` +
-        `FROM completions`
+          `SUM(_sample_interval) as completions, ` +
+          `quantileWeighted(0.50)(double2, _sample_interval) as medianTime, ` +
+          `quantileWeighted(0.90)(double2, _sample_interval) as p90Time, ` +
+          `avg(double1) as avgHintsRemaining, ` +
+          `avg(double5) as avgHintsUsed, ` +
+          `MAX(double4) as maxStreak ` +
+          `FROM completions`,
       ),
-      analyticsQuery(env,
+      analyticsQuery(
+        env,
         `SELECT ` +
-        `SUM(_sample_interval) as completions, ` +
-        `quantileWeighted(0.50)(double2, _sample_interval) as medianTime, ` +
-        `quantileWeighted(0.90)(double2, _sample_interval) as p90Time, ` +
-        `avg(double5) as avgHintsUsed ` +
-        `FROM completions WHERE index1 = '${today}'`
+          `SUM(_sample_interval) as completions, ` +
+          `quantileWeighted(0.50)(double2, _sample_interval) as medianTime, ` +
+          `quantileWeighted(0.90)(double2, _sample_interval) as p90Time, ` +
+          `avg(double5) as avgHintsUsed ` +
+          `FROM completions WHERE index1 = '${today}'`,
       ),
-      analyticsQuery(env,
+      analyticsQuery(
+        env,
         `SELECT ` +
-        `index1, ` +
-        `SUM(_sample_interval) as completions, ` +
-        `quantileWeighted(0.50)(double2, _sample_interval) as medianTime, ` +
-        `avg(double5) as avgHintsUsed ` +
-        `FROM completions ` +
-        `GROUP BY index1 ` +
-        `ORDER BY index1 DESC ` +
-        `LIMIT 30`
+          `index1, ` +
+          `SUM(_sample_interval) as completions, ` +
+          `quantileWeighted(0.50)(double2, _sample_interval) as medianTime, ` +
+          `avg(double5) as avgHintsUsed ` +
+          `FROM completions ` +
+          `GROUP BY index1 ` +
+          `ORDER BY index1 DESC ` +
+          `LIMIT 30`,
       ),
     ]);
   } catch (e: any) {
@@ -272,12 +278,12 @@ class MetaUpdater {
         "content",
         `${this.count} word${
           this.count === 1 ? "" : "s"
-        } to find today. Play now to find them all.`
+        } to find today. Play now to find them all.`,
       );
     } else if (element.getAttribute("property") === "og:image") {
       element.setAttribute(
         "content",
-        `${this.origin}/assets/${this.letters.join("")}.png`
+        `${this.origin}/assets/${this.letters.join("")}.png`,
       );
     }
   }

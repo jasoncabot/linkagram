@@ -1,3 +1,14 @@
+@use 'tokens';
+@use 'reset';
+@use 'utilities';
+@use 'layout';
+@use 'tiles';
+@use 'connections';
+@use 'wordlist';
+@use 'modals';
+@use 'buttons';
+@use 'celebration';
+
 @font-face {
   font-family: 'Space Grotesk';
   font-style: normal;
@@ -5,13 +16,3 @@
   font-display: swap;
   src: url('/fonts/SpaceGrotesk.woff2') format('woff2');
 }
-@import 'tokens';
-@import 'reset';
-@import 'utilities';
-@import 'layout';
-@import 'tiles';
-@import 'connections';
-@import 'wordlist';
-@import 'modals';
-@import 'buttons';
-@import 'celebration';

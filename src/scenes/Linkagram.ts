@@ -264,8 +264,8 @@ export default class Linkagram {
       fetch("/data/" + this.config.frequencies),
     ]);
 
-    const bundledWords = await wordsResponse.json();
-    const frequencies = await frequenciesResponse.json();
+    const bundledWords = (await wordsResponse.json()) as string[];
+    const frequencies = (await frequenciesResponse.json()) as string[];
 
     // Use a previously-fetched remote copy if available (stale-while-revalidate).
     // A background fetch runs regardless to freshen localStorage (and the widget
