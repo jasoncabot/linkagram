@@ -15,7 +15,12 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version-file: .nvmrc
-      - run: yarn
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            worker/package-lock.json
+            pay/package-lock.json
+      - run: npm ci
         working-directory: worker
       - name: Publish Image Worker
         uses: cloudflare/wrangler-action@v3
@@ -24,7 +29,7 @@ jobs:
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           workingDirectory: 'worker'
           command: deploy
-      - run: yarn
+      - run: npm ci
         working-directory: pay
       - name: Publish Payment Worker
         uses: cloudflare/wrangler-action@v3
@@ -33,8 +38,8 @@ jobs:
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           workingDirectory: 'pay'
           command: publish
-      - run: yarn
-      - run: yarn build
+      - run: npm ci
+      - run: npm run build
       - name: Publish Pages
         uses: cloudflare/wrangler-action@v3
         with:

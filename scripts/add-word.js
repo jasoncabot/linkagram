@@ -20,4 +20,6 @@ if (allWords.indexOf(word) >= 0 || word.length === 0) {
 allWords.push(word);
 allWords.sort();
 
-fs.writeFileSync(dictionaryPath, JSON.stringify(allWords, null, 0));
+// pretty-printed (one word per line) so adding words is a clean one-line diff;
+// the build step compacts this back to a single line for distribution
+fs.writeFileSync(dictionaryPath, JSON.stringify(allWords, null, 2) + "\n");

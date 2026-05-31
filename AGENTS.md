@@ -64,7 +64,7 @@ A new puzzle is generated each day based on the date, so every player gets the s
 - **IAP Product**: `com.jasoncabot.linkagram.hints12` — consumable, 99p, grants 12 hints
 - **Native polish**: Haptic feedback on tile selection (light), valid word (success), invalid word (error), game completion (heavy). Status bar styled dark to match theme.
 - **Dictionary definitions**: Cached in localStorage per word. Shows "(Definition available when online)" when offline.
-- **Dictionary**: `public/data/small.json` — a curated list of ~3000 common English words. Use `yarn word <word>` to add new words.
+- **Dictionary**: `public/data/small.json` — a curated list of ~3000 common English words. Use `npm run word -- <word>` to add new words.
 - **Fastlane**: `bundle exec fastlane ios beta` builds and uploads to TestFlight. Code signing via `match` (private git repo for certs).
 
 ## Word Validity
@@ -82,13 +82,13 @@ When bumping the version, update **both** files. The pbxproj has `MARKETING_VERS
 ## Development
 
 ```
-yarn install
-yarn dev             # Start dev server (web)
-yarn build           # Production web build (with PWA)
-yarn build:ios       # Production iOS build (no PWA)
-yarn cap:sync        # Sync web assets to iOS project
-yarn ios             # Build, sync, and open in Xcode
-yarn word <w>        # Add a word to the dictionary (requires approval)
+npm install
+npm run dev          # Start dev server (web)
+npm run build        # Production web build (with PWA)
+npm run build:ios    # Production iOS build (no PWA)
+npm run cap:sync     # Sync web assets to iOS project
+npm run ios          # Build, sync, and open in Xcode
+npm run word -- <w>  # Add a word to the dictionary (requires approval)
 
 bundle exec fastlane ios beta     # Build and upload to TestFlight
 bundle exec fastlane ios release  # Build, upload, and submit for review
