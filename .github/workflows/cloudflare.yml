@@ -37,7 +37,7 @@ jobs:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           workingDirectory: 'pay'
-          command: publish
+          command: deploy
       - run: npm ci
       - run: npm run build
       - name: Publish Pages
