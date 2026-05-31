@@ -1,7 +1,25 @@
-import { defineConfig } from 'vite';
+import { defineConfig, type Plugin } from 'vite';
+import { readFileSync, writeFileSync } from 'fs';
 import { resolve } from 'path';
 import { VitePWA } from "vite-plugin-pwa"
 import { version } from './package.json';
+
+// The data JSON files live pretty-printed (one word per line) in public/ so words
+// are easy to add with a clean diff. Vite copies public/ into the output dir before
+// closeBundle runs, so we compact those copies here to keep the distribution small.
+// This runs before VitePWA's post-enforced closeBundle, so Workbox precaches the
+// compacted files.
+const compactDataJson = (files: string[]): Plugin => ({
+  name: 'compact-data-json',
+  apply: 'build',
+  closeBundle() {
+    const outDir = resolve(__dirname, 'dist');
+    for (const file of files) {
+      const path = resolve(outDir, file);
+      writeFileSync(path, JSON.stringify(JSON.parse(readFileSync(path, 'utf-8'))));
+    }
+  },
+});
 
 export default defineConfig(({ mode }) => ({
   define: {
@@ -15,7 +33,10 @@ export default defineConfig(({ mode }) => ({
       },
     },
   },
-  plugins: mode === 'capacitor' ? [] : [
+  plugins: mode === 'capacitor' ? [
+    compactDataJson(['data/small.json']),
+  ] : [
+    compactDataJson(['data/small.json']),
     VitePWA({
       includeAssets: [
         "android-chrome-192x192.png",
